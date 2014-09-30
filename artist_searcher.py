@@ -41,7 +41,7 @@ def main():
         browser = album.browse()
         browser.load()
         
-        print("Their most recent album is " + str(album.name))
+        print("Their most popular album is " + str(album.name))
         cover = album.cover(spotify.ImageSize.LARGE)
         cover.load()
         open('/tmp/cover.html', 'w+').write('<img src="%s"> <h1>%s - %s</h1>' % (cover.data_uri, album.artist.name, album.name))
