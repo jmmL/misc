@@ -121,5 +121,6 @@ def main():
         else:
             place_2()
         print_board()
-main()
 
+if __name__ == "__main__":
+    main()

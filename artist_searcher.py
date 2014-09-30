@@ -5,6 +5,7 @@ def main():
     import getpass
     #import logging
     #logging.basicConfig(level=logging.DEBUG)
+    """ The check-if-logged-in code is mostly based on the pyspotify reference code """
     logged_in_event = threading.Event()
     def connection_state_listener(session):
         if session.connection.state is spotify.ConnectionState.LOGGED_IN:
@@ -17,16 +18,11 @@ def main():
         spotify.SessionEvent.CONNECTION_STATE_UPDATED,
         connection_state_listener)
         
-    session.connection.state
-    ###############
     user_login = input("Please input your username: ")
     user_password = getpass.getpass()
     session.login(user_login,user_password)
-    ###############
-    session.connection.state
     logged_in_event.wait()
-    session.connection.state
-    ##################################
+    ##############################
     
     print(str(session.user))
     search_active = True
@@ -35,6 +31,7 @@ def main():
         if "!quit" in user_search:
             search_active = False
             break
+        
         search = session.search(user_search) #do the search
         search.load() # load the search results
         album = session.get_album(str(search.albums[0].link)) # store the first album of the search in the album variable
@@ -46,4 +43,6 @@ def main():
         cover = album.cover(spotify.ImageSize.LARGE)
         cover.load()
         open('/tmp/cover.html', 'w+').write('<img src="%s"> <h1>%s - %s</h1>' % (cover.data_uri, album.artist.name, album.name))
-main()
+
+if __name__ == "__main__":
+    main()
