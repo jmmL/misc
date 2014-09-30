@@ -2,6 +2,7 @@ def main():
     """ An attempt at using APIs """
     import spotify
     import threading
+    import getpass
     #import logging
     #logging.basicConfig(level=logging.DEBUG)
     logged_in_event = threading.Event()
@@ -18,8 +19,8 @@ def main():
         
     session.connection.state
     ###############
-    user_login = input("Please input your username")
-    user_password = input("Please input your password")
+    user_login = input("Please input your username: ")
+    user_password = getpass.getpass()
     session.login(user_login,user_password)
     ###############
     session.connection.state
