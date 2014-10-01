@@ -1,5 +1,15 @@
 def main():
-    """ A simple game of chess """
+    """ A simple game of chess
+    TODO:
+            check for move legality
+            alternate between black and white
+            create non-pawn pieces
+            make pieces in a better way
+            handle user input more elegantly
+            add win conditions
+            add special moves (castling...)
+            output board in prettier way
+    """
     board_size = 8
     board = [["-" for j in range(board_size)] for i in range(board_size)]
     w_pawn = []
@@ -44,7 +54,6 @@ def main():
         move_piece_to[1] = int(user_move[2])
         for i in all_pieces:
             for j in i:
-                #print(j.name)
                 if j.row == move_piece_located_at[0] and j.column == move_piece_located_at[1]:
                     j.row = move_piece_to[0]
                     j.column = move_piece_to[1]
@@ -52,12 +61,6 @@ def main():
     create_pawns()
     move_piece()
     print_board()
-    """ TODO:
-            check for move legality
-            alternate between black and white
-            create non-pawn pieces
-            make pieces in a better way
-            handle user input more elegantly
-    """
+
 if __name__ == "__main__":
     main()
