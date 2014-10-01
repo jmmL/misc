@@ -18,7 +18,7 @@ def main():
         spotify.SessionEvent.CONNECTION_STATE_UPDATED,
         connection_state_listener)
         
-    user_login = input("Please input your username: ")
+    user_login = input("Please input your Spotify username: ")
     user_password = getpass.getpass()
     session.login(user_login,user_password)
     logged_in_event.wait()
@@ -27,7 +27,7 @@ def main():
     print(str(session.user))
     search_active = True
     while search_active:
-        user_search = input("Please enter a band name (type\"!quit\" to exit):\n")
+        user_search = input("Please enter a query (or type\"!quit\" to exit):\n")
         if "!quit" in user_search:
             search_active = False
             break
@@ -39,7 +39,7 @@ def main():
         browser = album.browse()
         browser.load()
         
-        print("Their most popular album is " + str(album.name))
+        print("The most popular album for your search is " + str(album.name))
         cover = album.cover(spotify.ImageSize.LARGE)
         cover.load()
         open('/tmp/cover.html', 'w+').write('<img src="%s"> <h1>%s - %s</h1>' % (cover.data_uri, album.artist.name, album.name))
