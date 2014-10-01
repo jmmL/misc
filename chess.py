@@ -2,6 +2,7 @@ def main():
     """ A simple game of chess
     TODO:
             check for move legality
+            check for pieces passing through other pieces
             alternate between black and white
             create non-pawn pieces
             make pieces in a better way
@@ -14,7 +15,18 @@ def main():
     board = [["-" for j in range(board_size)] for i in range(board_size)]
     w_pawn = []
     b_pawn = []
-    all_pieces = [w_pawn, b_pawn]
+    w_rook = []
+    w_bishop = []
+    w_knight = []
+    w_king = []
+    w_queen = []
+    b_rook = []
+    b_bishop = []
+    b_knight = []
+    b_king = []
+    b_queen = []
+    all_pieces = [w_pawn, b_pawn, w_rook, w_bishop, w_knight, w_king,
+        w_queen, b_rook, b_bishop, b_knight, b_king, b_queen]
     
     def print_board():
         for i in all_pieces:
@@ -57,7 +69,16 @@ def main():
                 if j.row == move_piece_located_at[0] and j.column == move_piece_located_at[1]:
                     j.row = move_piece_to[0]
                     j.column = move_piece_to[1]
-    
+    def move_legality(piece):
+        if piece.name == "b" or piece.name == "B":
+            if abs(move_piece_located_at[0] - move_piece_to[0]) == abs(move_piece_located_at[1] - move_piece_to[1]):
+                # A bishop has to move along diagonals, so the abs deltaX and the abs deltaY should be equal
+                return True
+        if piece.name == "r" or piece.name == "R":
+            if ((move_piece_located_at[0] - move_piece_to[0] == 0) and (abs(move_piece_located_at[1] - move_piece_to[1]) > 0) or (abs(move_piece_located_at[0] - move_piece_to[0]) and (move_piece_located_at[1] - move_piece_to[1] == 0)):
+                # A rook moves either along a row or a column, but not both
+                return True
+        
     create_pawns()
     move_piece()
     print_board()
