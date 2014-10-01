@@ -75,10 +75,16 @@ def main():
                 # A bishop has to move along diagonals, so the abs deltaX and the abs deltaY should be equal
                 return True
         if piece.name == "r" or piece.name == "R":
-            if ((move_piece_located_at[0] - move_piece_to[0] == 0) and (abs(move_piece_located_at[1] - move_piece_to[1]) > 0) or (abs(move_piece_located_at[0] - move_piece_to[0]) and (move_piece_located_at[1] - move_piece_to[1] == 0)):
+            if ((move_piece_located_at[0] - move_piece_to[0] == 0) and (abs(move_piece_located_at[1] - move_piece_to[1]) > 0)) or
+             (abs(move_piece_located_at[0] - move_piece_to[0]) and (move_piece_located_at[1] - move_piece_to[1] == 0)):
                 # A rook moves either along a row or a column, but not both
                 return True
-        
+        if piece.name = "q" or piece.name == "Q":
+            if (((move_piece_located_at[0] - move_piece_to[0] == 0) and (abs(move_piece_located_at[1] - move_piece_to[1]) > 0)) or
+                        (abs(move_piece_located_at[0] - move_piece_to[0]) and (move_piece_located_at[1] - move_piece_to[1] == 0))) or
+              (abs(move_piece_located_at[0] - move_piece_to[0]) == abs(move_piece_located_at[1] - move_piece_to[1])):
+                  # If the queen behaves like either a bishop or a rook, return true
+                  return True
     create_pawns()
     move_piece()
     print_board()
