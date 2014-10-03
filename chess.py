@@ -53,6 +53,7 @@ def main():
             return False
             
     def capture_piece(row,column):
+        # needs exception for kings
         for piece in pieces_in_play:
             if piece.row == row and piece.column == column:
                 captured_pieces.append(piece)
