@@ -10,7 +10,7 @@ def main():
             add special cases (castling, promotion, en passant)
     """
     import sys
-    
+
     board_size = 8
     empty_square = "-"
     piece_on_square_colour = ""
@@ -21,8 +21,9 @@ def main():
     pieces_in_play = []
     captured_pieces = []
     board = [[empty_square for j in range(board_size)] for i in range(board_size)]
-    
+
     def update_board():
+        # check if there is a piece located at each square on the board. if there is, add the piece's icon there
         for piece in pieces_in_play:
             for row in range(board_size):
                 for column in range(board_size):
@@ -31,6 +32,7 @@ def main():
         print_board()
 
     def print_board():
+        # prints out the board 1 row at a time, with row and column numbering
         for row in range(board_size):
             print(row, end = " ")
             for column in range(board_size):
@@ -42,6 +44,7 @@ def main():
         print()
 
     def piece_on_square(row,column):
+        # if there is a piece on the square of the board, return true
         piece_on_square_var = False
         for piece in pieces_in_play:
             if piece.row == row and piece.column == column:
@@ -51,15 +54,17 @@ def main():
             return True
         else:
             return False
-            
+
     def capture_piece(row,column):
-        # needs exception for kings
+        # finds the piece to be captured, removes it from play, and places it in another list for easy printing later on
+        # needs checks for colours!!
+        # needs exception for kings!!
         for piece in pieces_in_play:
             if piece.row == row and piece.column == column:
                 captured_pieces.append(piece)
                 pieces_in_play.remove(piece)
                 print("Captured ", captured_pieces[-1].icon)
-                    
+
     class Piece:
         def __init__(self,name,colour,icon,row,column,proposed_row,proposed_column,):
             self.name = name
@@ -96,6 +101,7 @@ def main():
         create_royalty()
 
     def move_piece():
+        # takes user input in x,y format. doesn't currently validate the string supplied
         user_choice = input("Choose a piece (row,column)")
         if "quit" in user_choice.lower():
             sys.exit("Exiting...")
@@ -111,7 +117,7 @@ def main():
                 piece.proposed_row = move_piece_to[0]
                 piece.proposed_column = move_piece_to[1]
                 if move_legality(piece) and collision_detection(piece):
-                    # blank old location
+                    # make the old location of the piece blank
                     board[piece.row][piece.column] = empty_square
                     if piece_on_square(piece.proposed_row,piece.proposed_column):
                         capture_piece(piece.proposed_row,piece.proposed_column)
@@ -171,7 +177,7 @@ def main():
                     return True
             else:
                 return False
-                
+
         elif piece.colour == "white":
             if piece.row == 6 and piece.proposed_row == 4 and piece.column == piece.proposed_column:
                 if (not piece_on_square(5,piece.column)) or (not piece_on_square(4,piece.column)):
@@ -201,9 +207,9 @@ def main():
         return True
 
 
-    
+
     print("Remember to set your terminal to black text on a white background!\n")
-    
+
     create_pieces()
     update_board()
 
