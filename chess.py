@@ -213,8 +213,21 @@ def main():
     def collision_detected(piece):
         # want to check all squares between start and finish - 1
         # also check final square to see if piece is of SAME colour and return False
+        # pawn collision currently implemented in pawn_move_legal()
         if piece.name == "rook":
             return rook_collision_detected(piece)
+        elif piece.name == "bishop":
+            return bishop_collision_detected(piece)
+        elif piece.name == "queen":
+            # queens behave either as rooks or bishops
+            return (rook_collision_detected(piece) or bishop_collision_detected(piece))
+        elif piece.name == "knight":
+            # knights only care about the square they land on
+            return landing_square_collision_detected(piece)
+        elif piece.name == "king":
+            # kings care about the square they land on, and not moving into check
+            # checking for check is not currently implemented
+            return landing_square_collision_detected(piece)
         else:
             return False
 
@@ -233,14 +246,31 @@ def main():
                 if piece_on_square(row, piece.column):
                     return True
         else:
-            if not piece_on_square(piece.proposed_row, piece.proposed_column):
-                return False
-            # allow movement to a square only with a piece of opposite colour on it
-            # need to check for kings here
-            elif get_piece_on_square(piece.proposed_row, piece.proposed_column).colour != piece.colour:
-                return False
-            else:
-                return True
+            landing_square_collision_detected(piece)
+
+
+    def bishop_collision_detected(piece):
+        signed_step_column = int(math.copysign(1,piece.proposed_column - piece.column))
+        signed_step_row = int(math.copysign(1,piece.proposed_row - piece.row))
+        
+        for row in range(piece.row + signed_step_row, piece.proposed_row, signed_step_row):
+            for column in range(piece.column + signed_step_column, piece.proposed_column, signed_step_column):
+                if abs(piece.row - row) == abs(piece.column - column):
+                    if piece_on_square(row, column):
+                        return True
+        else:
+            landing_square_collision_detected(piece)
+   
+            
+    def landing_square_collision_detected(piece):
+        if not piece_on_square(piece.proposed_row, piece.proposed_column):
+            return False
+        # allow movement to a square only with a piece of opposite colour on it
+        # need to check for kings here
+        elif get_piece_on_square(piece.proposed_row, piece.proposed_column).colour != piece.colour:
+            return False
+        else:
+            return True
 
     print("Remember to set your terminal to black text on a white background!\n")
     create_pieces()
