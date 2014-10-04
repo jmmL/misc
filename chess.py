@@ -160,7 +160,7 @@ def main():
     def diagonal_move_legal(piece):
         # A bishop has to move along diagonals, so the abs deltaX and the abs deltaY should be equal
         if abs(piece.row - piece.proposed_row) == abs(piece.column - piece.proposed_column):
-                return True
+            return True
 
     def lateral_move_legal(piece):
         # A rook moves either along a row or a column, but not both
