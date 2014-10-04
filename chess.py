@@ -10,6 +10,7 @@ def main():
             add special cases (castling, promotion, en passant)
     """
     import sys
+    import math
 
     board_size = 8
     empty_square = "-"
@@ -54,6 +55,12 @@ def main():
             return True
         else:
             return False
+    
+    # need better name for below and above        
+    def give_piece_on_square(row, column):
+        for piece in pieces_in_play:
+            if piece.row == row and piece.column == column:
+                return piece
 
     def capture_piece(row,column):
         # finds the piece to be captured, removes it from play, and places it in another list for easy printing later on
@@ -116,7 +123,7 @@ def main():
             if piece.row == move_piece_located_at[0] and piece.column == move_piece_located_at[1]:
                 piece.proposed_row = move_piece_to[0]
                 piece.proposed_column = move_piece_to[1]
-                if move_legality(piece) and collision_detection(piece):
+                if move_legality(piece) and not collision_detected(piece):
                     # make the old location of the piece blank
                     board[piece.row][piece.column] = empty_square
                     if piece_on_square(piece.proposed_row,piece.proposed_column):
@@ -203,10 +210,35 @@ def main():
         else:
             return False
 
-    def collision_detection(piece):
-        return True
-
-
+    def collision_detected(piece):
+        # want to check all squares between start and finish - 1
+        # also check final square to see if piece is of SAME colour and return False 
+        if piece.name == "rook":
+            return rook_collision_detected(piece)
+    
+    def rook_collision_detected(piece):
+        obstruction_en_route = False
+        # might be able to use max() and min() here rather than .copysign(). not sure if that would come in handy for bishop collision detection
+        signed_step_column = int(math.copysign(1,piece.proposed_column - piece.column))
+        signed_step_row = int(math.copysign(1,piece.proposed_row - piece.row))
+        if piece.row - piece.proposed_row == 0:
+            for column in range(piece.column + signed_step, piece.proposed_column, signed_step):
+                if piece_on_square(piece.row, column):
+                    obstruction_en_route = True
+        elif piece.column - piece.proposed_column == 0:
+            for row in range(piece.row + signed_step_row, piece.proposed_row, signed_step_row):
+                if piece_on_square(row, piece.column):
+                    obstruction_en_route = True
+        if obstruction_en_route:
+            return True
+        else:
+            if not piece_on_square(piece.proposed_row, piece.proposed_column):
+                return False
+            # need to check for kings here
+            elif give_piece_on_square(piece.proposed_row, piece.proposed_column).colour != piece.colour:
+                return False
+            else:
+                return True
 
     print("Remember to set your terminal to black text on a white background!\n")
 
