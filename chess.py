@@ -1,12 +1,11 @@
 def main():
     """ A simple game of chess
     TODO:
-            check for collision
             check for check
             add win conditions
-            alternate between black and white
+            restrict each side to only being able to move pieces of their own colour
             handle user input more elegantly
-            handle bad user input
+            handle bad user input (i.e., non-ints, or giving coordinates not on the board)
             add special cases (castling, promotion, en passant)
 
             bugs: currently valid to select a square of the board with no pieces on it
@@ -25,7 +24,7 @@ def main():
     board = [[empty_square for j in range(board_size)] for i in range(board_size)]
 
     def update_board():
-        # check if there is a piece located at each square on the board. if there is, add the piece's icon there
+        """ check if there is a piece located at each square on the board. if there is, add the piece's icon there """
         for piece in pieces_in_play:
             for row in range(board_size):
                 for column in range(board_size):
@@ -34,7 +33,7 @@ def main():
         print_board()
 
     def print_board():
-        # prints out the board 1 row at a time, with row and column numbering
+        """ prints out the board 1 row at a time, with row and column numbering """
         for row in range(board_size):
             print(row, end = " ")
             for column in range(board_size):
@@ -46,7 +45,7 @@ def main():
         print()
 
     def piece_on_square(row,column):
-        # if there is a piece on the square of the board, return true
+        """ if there is a piece on the square of the board, return true """
 
         for piece in pieces_in_play:
             if piece.row == row and piece.column == column:
@@ -56,7 +55,7 @@ def main():
 
 
     def get_piece_on_square(row, column):
-        # returns piece on a particular square
+        """ returns piece on a particular square """
         # need to reuse this more often
 
         for piece in pieces_in_play:
@@ -65,7 +64,7 @@ def main():
 
 
     def capture_piece(row,column):
-        # finds the piece to be captured, removes it from play, and places it in another list for easy printing later on
+        """ finds the piece to be captured, removes it from play, and places it in another list for easy printing later on """
         # needs checks for colours!!
         # needs exception for kings!!
 
@@ -127,7 +126,7 @@ def main():
             move_piece()
 
     def get_user_input():
-        # takes user input in x,y format. doesn't currently validate the string supplied
+        """ takes user input in x,y format. doesn't currently validate the string supplied """
         user_choice = input("Choose a piece (row,column)")
         if "quit" in user_choice.lower():
             sys.exit("Exiting...")
@@ -158,12 +157,12 @@ def main():
 
 
     def diagonal_move_legal(piece):
-        # A bishop has to move along diagonals, so the abs deltaX and the abs deltaY should be equal
+        """ A bishop has to move along diagonals, so the abs deltaX and the abs deltaY should be equal """
         if abs(piece.row - piece.proposed_row) == abs(piece.column - piece.proposed_column):
             return True
 
     def lateral_move_legal(piece):
-        # A rook moves either along a row or a column, but not both
+        """ A rook moves either along a row or a column, but not both """
         if ((piece.row - piece.proposed_row == 0) and (abs(piece.column - piece.proposed_column) > 0)) or ((abs(piece.row - piece.proposed_row) > 0) and (piece.column - piece.proposed_column == 0)):
             return True
 
