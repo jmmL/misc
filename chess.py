@@ -14,8 +14,8 @@ import math
 
 board_size = 8
 empty_square = "-"
-move_piece_located_at = [0,0]
-move_piece_to = [0,0]
+move_piece_located_at = [0, 0]
+move_piece_to = [0, 0]
 pieces_in_play = []
 captured_pieces = []
 board = [[empty_square for j in range(board_size)] for i in range(board_size)]
@@ -41,35 +41,29 @@ def print_board():
         print(column, end = " ")
     print()
 
-def piece_on_square(row,column):
+def piece_on_square(row, column):
     """If there is a piece on the square of the board, return true"""
-
     for piece in pieces_in_play:
         if piece.row == row and piece.column == column:
             return True
     else:
         return False
 
-
 def get_piece_on_square(row, column):
     """Returns piece on a particular square """
     # need to reuse this more often
-
     for piece in pieces_in_play:
         if piece.row == row and piece.column == column:
             return piece
 
-
-def capture_piece(row,column):
+def capture_piece(row, column):
     """Finds the piece to be captured, removes it from play, and places it in another list for easy printing later on """
     # needs checks for colours!!
     # needs exception for kings!!
-
     piece = get_piece_on_square(row, column)
     captured_pieces.append(piece)
     pieces_in_play.remove(piece)
-    print("Captured ", captured_pieces[-1].icon)
-
+    print("Captured %s" % captured_pieces[-1].icon)
 
 class Piece:
     """Pieces are initialised with a name, colour and icon.
@@ -79,7 +73,7 @@ class Piece:
     """
     proposed_row = 0
     proposed_column = 0
-    def __init__(self,name,colour,icon,row,column,):
+    def __init__(self, name, colour, icon, row, column,):
         self.name = name
         self.colour = colour
         self.icon = icon
@@ -89,26 +83,26 @@ class Piece:
 def create_pawns():
     """Places two rows of pawns; one for each colour"""
     for i in range(board_size):
-        pieces_in_play.append(Piece("pawn","white","♙",6,i,))
-        pieces_in_play.append(Piece("pawn","black","♟",1,i,))
+        pieces_in_play.append(Piece("pawn", "white", "♙", 6, i))
+        pieces_in_play.append(Piece("pawn", "black", "♟", 1, i))
 
 def create_other_pieces():
     """Places all pieces which appear twice on the board. Their placement is
     mirrored across the columns of the board"""
     for i in range(2):
-        pieces_in_play.append(Piece("rook","white","♖",7,0 + (i * (board_size - 1)),))
-        pieces_in_play.append(Piece("rook","black","♜",0,0 + (i * (board_size - 1)),))
-        pieces_in_play.append(Piece("knight","white","♘",7,1 + (i * (board_size - 3)),))
-        pieces_in_play.append(Piece("knight","black","♞",0,1 + (i * (board_size - 3)),))
-        pieces_in_play.append(Piece("bishop","white","♗",7,2 + (i * (board_size - 5)),))
-        pieces_in_play.append(Piece("bishop","black","♝",0,2 + (i * (board_size - 5)),))
+        pieces_in_play.append(Piece("rook", "white", "♖", 7, 0 + (i * (board_size - 1)),))
+        pieces_in_play.append(Piece("rook", "black", "♜", 0, 0 + (i * (board_size - 1)),))
+        pieces_in_play.append(Piece("knight", "white", "♘", 7, 1 + (i * (board_size - 3)),))
+        pieces_in_play.append(Piece("knight", "black", "♞", 0, 1 + (i * (board_size - 3)),))
+        pieces_in_play.append(Piece("bishop", "white", "♗", 7, 2 + (i * (board_size - 5)),))
+        pieces_in_play.append(Piece("bishop", "black", "♝", 0, 2 + (i * (board_size - 5)),))
 
 def create_royalty():
     """Places kings and queens in specified squares"""
-    pieces_in_play.append(Piece("king","white","♔",7,4,))
-    pieces_in_play.append(Piece("king","black","♚",0,4,))
-    pieces_in_play.append(Piece("queen","white","♕",7,3,))
-    pieces_in_play.append(Piece("queen","black","♛",0,3,))
+    pieces_in_play.append(Piece("king", "white", "♔", 7, 4,))
+    pieces_in_play.append(Piece("king", "black", "♚", 0, 4,))
+    pieces_in_play.append(Piece("queen", "white", "♕", 7, 3,))
+    pieces_in_play.append(Piece("queen", "black", "♛", 0, 3,))
 
 def create_pieces():
     """Calls all the functions required to populate the board"""
@@ -117,9 +111,9 @@ def create_pieces():
     create_royalty()
 
 def move_piece():
-    """Decides whether or not to move the piece, based on the coordinates 
+    """Decides whether or not to move the piece, based on the coordinates
     inputted by the user and move_legal and collision_detected. In the future,
-    this will also depend on a check_for_check function. 
+    this will also depend on a check_for_check function.
     If a move is made then the old square is made empty"""
     get_user_input()
     piece = get_piece_on_square(move_piece_located_at[0], move_piece_located_at[1])
@@ -127,8 +121,8 @@ def move_piece():
     piece.proposed_column = move_piece_to[1]
     if move_legal(piece) and not collision_detected(piece):
         board[piece.row][piece.column] = empty_square
-        if piece_on_square(piece.proposed_row,piece.proposed_column):
-            capture_piece(piece.proposed_row,piece.proposed_column)
+        if piece_on_square(piece.proposed_row, piece.proposed_column):
+            capture_piece(piece.proposed_row, piece.proposed_column)
         piece.row = piece.proposed_row
         piece.column = piece.proposed_column
     else:
@@ -150,7 +144,7 @@ def get_user_input():
     move_piece_to[1] = int(user_move[2])
 
 def move_legal(piece):
-    """Calls relevant methods for determining legality"""
+    """Calls relevant functions for determining legality"""
     if piece.name == "bishop":
         return diagonal_move_legal(piece)
     elif piece.name == "rook":
@@ -166,7 +160,6 @@ def move_legal(piece):
         return king_move_legal(piece)
     else:
         return False
-
 
 def diagonal_move_legal(piece):
     """A bishop has to move along diagonals, so the abs deltaX and the abs deltaY should be equal """
@@ -186,28 +179,27 @@ def pawn_move_legal(piece):
     if piece.colour == "black":
         if piece.row == 1 and piece.proposed_row == 3 and piece.column == piece.proposed_column:
             # collision code
-            if (not piece_on_square(2,piece.column)) or (not piece_on_square(3,piece.column)):
+            if (not piece_on_square(2, piece.column)) or (not piece_on_square(3, piece.column)):
                 return True
         elif piece.row == piece.proposed_row - 1 and piece.column == piece.proposed_column:
-            if (not piece_on_square(piece.proposed_row,piece.proposed_column)):
+            if not piece_on_square(piece.proposed_row, piece.proposed_column):
                 return True
         elif piece.row == piece.proposed_row - 1 and abs(piece.column - piece.proposed_column) == 1:
             # we're capturing a piece here
             # and sort of doing collision detection. may want to re-think structure
-            if piece_on_square(piece.proposed_row,piece.proposed_column) and get_piece_on_square(piece.proposed_row, piece.proposed_column).colour != piece.colour:
+            if piece_on_square(piece.proposed_row, piece.proposed_column) and get_piece_on_square(piece.proposed_row, piece.proposed_column).colour != piece.colour:
                 return True
         else:
             return False
-
     elif piece.colour == "white":
         if piece.row == 6 and piece.proposed_row == 4 and piece.column == piece.proposed_column:
-            if (not piece_on_square(5,piece.column)) or (not piece_on_square(4,piece.column)):
+            if (not piece_on_square(5, piece.column)) or (not piece_on_square(4, piece.column)):
                 return True
         elif piece.row == piece.proposed_row + 1 and piece.column == piece.proposed_column:
-            if (not piece_on_square(piece.proposed_row,piece.proposed_column)):
+            if not piece_on_square(piece.proposed_row, piece.proposed_column):
                 return True
         elif piece.row == piece.proposed_row + 1 and abs(piece.column - piece.proposed_column) == 1:
-            if piece_on_square(piece.proposed_row,piece.proposed_column) and get_piece_on_square(piece.proposed_row, piece.proposed_column).colour != piece.colour:
+            if piece_on_square(piece.proposed_row, piece.proposed_column) and get_piece_on_square(piece.proposed_row, piece.proposed_column).colour != piece.colour:
                 return True
         else:
             return False
@@ -228,7 +220,7 @@ def king_move_legal(piece):
         return False
 
 def collision_detected(piece):
-    """Calls the relevant methods to check for collision of different types
+    """Calls the relevant functions to check for collision of different types
     of pieces"""
     # want to check all squares between start and finish - 1
     # also check final square to see if piece is of SAME colour and return False
@@ -254,8 +246,8 @@ def rook_collision_detected(piece):
     """Checks for rook collisions, taking into account that they can move in
     one of four directions"""
     # might be able to use max() and min() here rather than .copysign(). not sure if that would come in handy for bishop collision detection
-    signed_step_column = int(math.copysign(1,piece.proposed_column - piece.column))
-    signed_step_row = int(math.copysign(1,piece.proposed_row - piece.row))
+    signed_step_column = int(math.copysign(1, piece.proposed_column - piece.column))
+    signed_step_row = int(math.copysign(1, piece.proposed_row - piece.row))
 
     # check all the squares between start and destination (exclusive). return True if any piece is on these squares
     if piece.row - piece.proposed_row == 0:
@@ -269,13 +261,11 @@ def rook_collision_detected(piece):
     else:
         landing_square_collision_detected(piece)
 
-
 def bishop_collision_detected(piece):
     """Checks for bishop collision, taking into account that they can move in
     one of four directions"""
-    signed_step_column = int(math.copysign(1,piece.proposed_column - piece.column))
-    signed_step_row = int(math.copysign(1,piece.proposed_row - piece.row))
-    
+    signed_step_column = int(math.copysign(1, piece.proposed_column - piece.column))
+    signed_step_row = int(math.copysign(1, piece.proposed_row - piece.row))
     for row in range(piece.row + signed_step_row, piece.proposed_row, signed_step_row):
         for column in range(piece.column + signed_step_column, piece.proposed_column, signed_step_column):
             if abs(piece.row - row) == abs(piece.column - column):
@@ -284,9 +274,8 @@ def bishop_collision_detected(piece):
     else:
         landing_square_collision_detected(piece)
 
-        
 def landing_square_collision_detected(piece):
-    """Determines whether there is a piece on the final square of the move, 
+    """Determines whether there is a piece on the final square of the move,
     and allows the move only if the piece is of the opposite colour. Does
     not currently allow for check."""
     if not piece_on_square(piece.proposed_row, piece.proposed_column):
@@ -299,14 +288,13 @@ def landing_square_collision_detected(piece):
         return True
 
 def main():
-    """Calls the relevant methods to set up the board, and then loops each move
+    """Calls the relevant functions to set up the board, and then loops each move
     of the game. Win conditions are not currently implemented."""
     game_over = False
     turn_counter = 1
     print("Remember to set your terminal to black text on a white background!\n")
     create_pieces()
     update_board()
-
     while not game_over:
         if turn_counter % 2 == 1:
             print("White's turn")
