@@ -3,10 +3,9 @@ import unittest
 
 
 def randomise_letters(letters):
-    letters = list(letters)
-    random.shuffle(letters)
-    shuffled = "".join(letters)
-    return shuffled
+    letters_list = list(letters)
+    random.shuffle(letters_list)
+    return "".join(letters_list)
 
 
 def scramble_word(word):
@@ -20,11 +19,10 @@ def scramble_word(word):
 
 def scramble_phrase(phrase):
     shuffled_phrase = []
-    phrase = phrase.split(" ")
-    for word in phrase:
+    word_list = phrase.split(" ")
+    for word in word_list:
         shuffled_phrase.append(scramble_word(word))
-    joined_shuffled_phrase = " ".join(shuffled_phrase)
-    return joined_shuffled_phrase
+    return " ".join(shuffled_phrase)
 
 
 def main():
