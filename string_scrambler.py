@@ -18,6 +18,7 @@ def scramble_word(word):
 
 
 def scramble_phrase(phrase):
+    phrase = phrase.strip()
     shuffled_phrase = []
     word_list = phrase.split(" ")
     for word in word_list:
