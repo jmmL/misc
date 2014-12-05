@@ -24,12 +24,14 @@ def decipher_text(ciphertext, grid, key):
 
 
 class MyGridTest(unittest.TestCase):
+    def setUp(self):
+        self.test_alphabet = "abcdefghijklmnopqrstuvwxyz"
+        self.test_grid = generate_grid(self.test_alphabet)    
+
     def test_generate_grid(self):
-        self.alphabet = "abcdefghijklmnopqrstuvwxyz"
-        self.grid = generate_grid(self.alphabet)
-        self.assertEqual(self.grid[7], "hijklmnopqrstuvwxyzabcdefg")
-        self.assertEqual(len(self.grid), 26)
-        self.assertEqual(len(self.grid[25]), 26)
+        self.assertEqual(self.test_grid[7], "hijklmnopqrstuvwxyzabcdefg")
+        self.assertEqual(len(self.test_grid), 26)
+        self.assertEqual(len(self.test_grid[25]), 26)
 
 
 class MyVigenereTests(unittest.TestCase):
@@ -42,7 +44,7 @@ class MyVigenereTests(unittest.TestCase):
 
     def test_encipher_text(self):
         self.assertEqual(encipher_text(self.test_plaintext, self.test_grid, self.test_key), "aidehagkeh")
-        self.assertNotEqual(encipher_text(self.test_plaintext, self.test_grid, self.test_key), "helloworld")
+        self.assertNotEqual(encipher_text(self.test_plaintext, self.test_grid, self.test_key), self.test_plaintext)
 
 
     def test_decipher_text(self):
@@ -51,7 +53,7 @@ class MyVigenereTests(unittest.TestCase):
 
 def main():
     key = "lemon"
-    plaintext = "itwasacolddarkknight"
+    plaintext = "itwasacolddarknight"
     alphabet = "abcdefghijklmnopqrstuvwxyz"
 
     key = key.lower()
