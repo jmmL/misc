@@ -32,19 +32,48 @@ def get_input():
         sys.exit("Quiting...")
     return initial_input
 
+def find_most_nested_expression(string):
+    index_2 = string.index(")")
+    index_1 = string.rindex("(", 0, index_2)
+    return string[index_1 + 1:index_2]
+
+
+def chew_through_nests(string):
+    print(string)
+
+    if ")" in string:
+        most_nested = find_most_nested_expression(string)
+        operator = most_nested[0]
+        number_list = string_to_list_of_ints(most_nested[1:])
+        string = string.replace("(" + most_nested + ")", str(naive_calculator(operator, number_list)))
+        return chew_through_nests(string)
+    else:
+        #print("I am here")
+        return string
+
+def check_input(input):
+    if input.count("(") == input.count(")") and input.count("(") > 0:
+        return True
+    else:
+        sys.exit("Malformed input. Check your brackets.")
+
+
 
 def main():
     """ This is a rudimentary prefix calculator """
-    list_of_operators = ["+", "*", "^", ]
     print("This is a rudimentary prefix calculator. The first 3 goes are free!\nType \"q\" to quit.")
     i = 0
     while i < 3:
         initial_input = get_input()
+        #initial_input = "(+ 2 (^ 3 3) (* 3 2))"
+        check_input(initial_input)
+        answer = chew_through_nests(initial_input)
 
-        operator = initial_input[0]
-        number_list = string_to_list_of_ints(initial_input[1:])
 
-        print("= " + str(naive_calculator(operator, number_list)))
+        # operator = initial_input[0]
+        # number_list = string_to_list_of_ints(initial_input[1:])
+
+        print("= " + answer)
         i += 1
 
 if __name__ == "__main__":
