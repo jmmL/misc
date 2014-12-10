@@ -1,17 +1,12 @@
-#    print(inputted_operands[0] + 1)
-#    print(type(inputted_operands))
-#    print(inputted_operands[0] + inputted_operands[1])
+import sys
 
 
 def naive_calculator(operator, number_list):
-    calculated_output = 0
     if operator == "+":
         calculated_output = sum(number_list)
 
-
     elif operator == "*":
         calculated_output = 1
-        #reduce(lambda x, y: x * y, number_list)
         for i in number_list:
             calculated_output *= i
 
@@ -20,7 +15,7 @@ def naive_calculator(operator, number_list):
         for i in number_list[1:]:
             calculated_output = calculated_output ** i
     else:
-        print("Error: operator not recognised")
+        sys.exit("Error: operator not recognised")
 
     return calculated_output
 
@@ -31,23 +26,22 @@ def string_to_list_of_ints(string):
     return number_list
 
 
+def get_input():
+    initial_input = input("Please input an expression:\n")
+    if "q" in initial_input.lower():
+        sys.exit("Quiting...")
+    return initial_input
+
+
 def main():
     """ This is a rudimentary prefix calculator """
     list_of_operators = ["+", "*", "^", ]
     print("This is a rudimentary prefix calculator. The first 3 goes are free!\nType \"q\" to quit.")
     i = 0
     while i < 3:
-        initial_input = input("Please input an expression:\n")
-        if "q" in initial_input.lower():
-            print("Quiting...")
-            break
-        
-        operator = initial_input[0]
+        initial_input = get_input()
 
-        if operator not in list_of_operators:
-            print("Error: operator not recognised")
-            break
-        
+        operator = initial_input[0]
         number_list = string_to_list_of_ints(initial_input[1:])
 
         print("= " + str(naive_calculator(operator, number_list)))
