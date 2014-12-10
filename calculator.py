@@ -4,20 +4,21 @@
 
 
 def naive_calculator(operator, number_list):
+    calculated_output = 0
     if operator == "+":
-        calculated_output = 0
-        for i in range(len(number_list)):
-            calculated_output += number_list[i]
+        calculated_output = sum(number_list)
+
 
     elif operator == "*":
         calculated_output = 1
-        for i in range(len(number_list)):
-            calculated_output *= number_list[i]
+        #reduce(lambda x, y: x * y, number_list)
+        for i in number_list:
+            calculated_output *= i
 
     elif operator == "^":
         calculated_output = number_list[0]
-        for i in range(len(number_list) - 1):
-            calculated_output = calculated_output ** number_list[i+1]
+        for i in number_list[1:]:
+            calculated_output = calculated_output ** i
     else:
         print("Error: operator not recognised")
 
@@ -37,7 +38,7 @@ def main():
     i = 0
     while i < 3:
         initial_input = input("Please input an expression:\n")
-        if "q" in initial_input or "Q" in initial_input:
+        if "q" in initial_input.lower():
             print("Quiting...")
             break
         
