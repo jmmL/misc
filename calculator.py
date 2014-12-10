@@ -1,4 +1,6 @@
+#! /usr/bin/env python3
 import sys
+import unittest
 
 
 def naive_calculator(operator, number_list):
@@ -59,9 +61,29 @@ def check_input(initial_input):
         sys.exit("Malformed input. Check your brackets.")
 
 
+class MyCalculatorTests(unittest.TestCase):
+    def test_find_most_nested_expression(self):
+        test_expression = "(+ 3 (^ 2 4)"
+        self.assertEqual(find_most_nested_expression(test_expression), "^ 2 4")
+
+    def test_string_to_list_of_ints(self):
+        test_string = "3 2 4 5"
+        self.assertEqual(string_to_list_of_ints(test_string), [3, 2, 4, 5])
+
+    def test_naive_calculator(self):
+        test_number_list = [1, 3, 4, 5]
+        test_non_ints_and_negatives = [-2, 1, 0.5, 7.6]
+        test_complex_number_list = [-1, 0.5]
+        self.assertEqual(naive_calculator("*", test_number_list), 60)
+        self.assertEqual(naive_calculator("+", test_number_list), 13)
+        self.assertEqual(naive_calculator("^", test_number_list), 1)
+        self.assertEqual(naive_calculator("+", test_non_ints_and_negatives), 7.1)
+        self.assertEqual(naive_calculator("*", test_non_ints_and_negatives), -7.6)
+        self.assertAlmostEqual(naive_calculator("^", test_complex_number_list), 0+1j)
+
 def main():
-    """ This is a rudimentary prefix calculator """
-    print("This is a rudimentary prefix calculator. The first 3 goes are free!\nType \"q\" to quit.")
+    """ This is a prefix calculator """
+    print("This is a prefix calculator. The first 3 goes are free!\nType \"q\" to quit.")
     goes = 0
     while goes < 3:
         initial_input = get_input()
