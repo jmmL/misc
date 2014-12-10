@@ -8,7 +8,7 @@ def generate_grid(alphabet):
         grid[i] = alphabet[i:] + alphabet[:i]
     return grid
 
-   
+
 def encipher_text(plaintext, grid, key):
     ciphertext = ""
     for i in range(0, len(plaintext)):
@@ -26,7 +26,8 @@ def decipher_text(ciphertext, grid, key):
 class MyGridTest(unittest.TestCase):
     def setUp(self):
         self.test_alphabet = "abcdefghijklmnopqrstuvwxyz"
-        self.test_grid = generate_grid(self.test_alphabet)    
+        self.test_grid = generate_grid(self.test_alphabet)
+
 
     def test_generate_grid(self):
         self.assertEqual(self.test_grid[7], "hijklmnopqrstuvwxyzabcdefg")
@@ -49,7 +50,7 @@ class MyVigenereTests(unittest.TestCase):
 
     def test_decipher_text(self):
         self.assertEqual(decipher_text("ciprbhiwmyfdonofw", self.test_grid, "lemontree"), "reddoorsinbraavos")
-   
+
 
 def main():
     key = "lemon"
@@ -58,6 +59,8 @@ def main():
 
     key = key.lower()
     plaintext = plaintext.lower()
+    alphabet = alphabet.lower()
+
     grid = generate_grid(alphabet)
 
     ciphertext = encipher_text(plaintext, grid, key)

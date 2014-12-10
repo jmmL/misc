@@ -10,7 +10,7 @@ def get_nyx(words, vowels):
 
 
 def main():
-    dictionary_path = "/usr/share/dict/british-englsh-insane"
+    dictionary_path = "/usr/share/dict/british-english-insane"
     vowels = set(["a", "e", "i", "o", "u"])
 
     try:
