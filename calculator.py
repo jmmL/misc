@@ -22,9 +22,9 @@ def naive_calculator(operator, number_list):
     return calculated_output
 
 
-def string_to_list_of_ints(string):
+def string_to_list_of_floats(string):
     number_list = string.split()
-    number_list = [int(i) for i in number_list]
+    number_list = [float(i) for i in number_list]
     return number_list
 
 
@@ -47,11 +47,11 @@ def chew_through_nests(string):
     if ")" in string:
         most_nested = find_most_nested_expression(string)
         operator = most_nested[0]
-        number_list = string_to_list_of_ints(most_nested[1:])
+        number_list = string_to_list_of_floats(most_nested[1:])
         string = string.replace("(" + most_nested + ")", str(naive_calculator(operator, number_list)))
         return chew_through_nests(string)
     else:
-        return string
+        return float(string)
 
 
 def check_input(initial_input):
@@ -66,20 +66,33 @@ class MyCalculatorTests(unittest.TestCase):
         test_expression = "(+ 3 (^ 2 4)"
         self.assertEqual(find_most_nested_expression(test_expression), "^ 2 4")
 
-    def test_string_to_list_of_ints(self):
+    def test_string_to_list_of_floats(self):
         test_string = "3 2 4 5"
-        self.assertEqual(string_to_list_of_ints(test_string), [3, 2, 4, 5])
+        test_complex_string = "3+4j 1 2-1j"
+        self.assertEqual(string_to_list_of_floats(test_string), [3, 2, 4, 5])
+        self.assertRaises(ValueError, string_to_list_of_floats, test_complex_string)
 
     def test_naive_calculator(self):
         test_number_list = [1, 3, 4, 5]
-        test_non_ints_and_negatives = [-2, 1, 0.5, 7.6]
+        test_floats_and_negatives = [-2, 1, 0.5, 7.6]
         test_complex_number_list = [-1, 0.5]
         self.assertEqual(naive_calculator("*", test_number_list), 60)
         self.assertEqual(naive_calculator("+", test_number_list), 13)
         self.assertEqual(naive_calculator("^", test_number_list), 1)
-        self.assertEqual(naive_calculator("+", test_non_ints_and_negatives), 7.1)
-        self.assertEqual(naive_calculator("*", test_non_ints_and_negatives), -7.6)
+        self.assertEqual(naive_calculator("+", test_floats_and_negatives), 7.1)
+        self.assertEqual(naive_calculator("*", test_floats_and_negatives), -7.6)
         self.assertAlmostEqual(naive_calculator("^", test_complex_number_list), 0+1j)
+
+    def test_chew_through_nests(self):
+        test_nest = "(+ 2 (^ 3 3) (* 3 2))"
+        test_complex_nest = "(+ (^ -1 0.5) 2)"
+        test_lots_of_nests = "(* (+ 3 4 5 (^ 2 6) (* 3 4 0) (* 1 2 8) (+ (+ 2 3) (+ 9 0 (* 2 7) (* 14 0.5)))) 2)"
+        #                                     64     0          16           5              14        7
+        #                            12                                  35
+        self.assertEqual(chew_through_nests(test_nest), 35.0)
+        self.assertRaises(ValueError, chew_through_nests, test_complex_nest)
+        self.assertEqual(chew_through_nests(test_lots_of_nests), 254.0)
+
 
 def main():
     """ This is a prefix calculator """
@@ -92,8 +105,8 @@ def main():
         check_input(initial_input)
         answer = chew_through_nests(initial_input)
 
-        print("= " + answer)
+        print("= " + str(answer))
         goes += 1
 
 if __name__ == "__main__":
-    main()
+    unittest.main()
