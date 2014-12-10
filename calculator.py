@@ -24,7 +24,11 @@ def naive_calculator(operator, number_list):
 
 def string_to_list_of_floats(string):
     number_list = string.split()
-    number_list = [float(i) for i in number_list]
+    try:
+        number_list = [float(i) for i in number_list]
+    except ValueError:
+        print("Complex numbers are not currently supported")
+        raise
     return number_list
 
 
@@ -87,8 +91,6 @@ class MyCalculatorTests(unittest.TestCase):
         test_nest = "(+ 2 (^ 3 3) (* 3 2))"
         test_complex_nest = "(+ (^ -1 0.5) 2)"
         test_lots_of_nests = "(* (+ 3 4 5 (^ 2 6) (* 3 4 0) (* 1 2 8) (+ (+ 2 3) (+ 9 0 (* 2 7) (* 14 0.5)))) 2)"
-        #                                     64     0          16           5              14        7
-        #                            12                                  35
         self.assertEqual(chew_through_nests(test_nest), 35.0)
         self.assertRaises(ValueError, chew_through_nests, test_complex_nest)
         self.assertEqual(chew_through_nests(test_lots_of_nests), 254.0)
