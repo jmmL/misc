@@ -14,7 +14,7 @@ class MyCreditCardTests(unittest.TestCase):
         self.assertFalse(credit_card_check("0000 0000"))
         self.assertFalse(credit_card_check("0123 4567 89AB EFGH"))
         self.assertFalse(credit_card_check("0000 000000000000"))
-        # self.assertFalse(credit_card_check(0123456789024568))
+        self.assertFalse(credit_card_check(9384349532970121))
 
     def test_true_cards(self):
         self.assertTrue(credit_card_check("9384 3495 3297 0121"))
@@ -45,15 +45,17 @@ def check_digits(card_number):
 
 def check_sum(card_number):
     total = 0
+    magic_number = 10
+
     for i in range(0, len(card_number)):
         if card_number[i].isdigit():
             total += int(card_number[i])
 
-    # If the sum of all 16 digits is evenly divisible by 10, then return True, else return False
-    if total % 10 == 0:
+    # If the sum of all digits is evenly divisible by 10 (the magic number), then return True, else return False
+    if total % magic_number == 0:
         return True
     else:
-        print("Sum was not evenly divisible by 10 (total: " + str(total) + ")")
+        print("Sum was not evenly divisible by %i (total: %s)" % (magic_number, total))
         return False
 
 
@@ -62,7 +64,10 @@ def credit_card_check(card_number):
     sum of all digits is divisible evenly by 10
     """
 
-    return check_length(card_number) and check_digits(card_number) and check_sum(card_number)
+    if type(card_number) is not str:
+        return False
+    else:
+        return check_length(card_number) and check_digits(card_number) and check_sum(card_number)
 
 
 def main():
