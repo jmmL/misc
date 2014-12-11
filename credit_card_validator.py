@@ -22,13 +22,22 @@ class MyCreditCardTests(unittest.TestCase):
 
 
 def check_length(card_number):
-    if len(card_number) != 19:
-        return False
-    else:
+    """ Checks that the length of the str card_number is 19 exactly
+    :param card_number: str
+    :return: bool
+    """
+    if len(card_number) == 19:
         return True
+    else:
+        return False
 
 
 def check_digits(card_number):
+    """ Checks that the first 4 chars of the str card_number are digits followed by the 5th char being a space,
+    and so on. Returns True if these conditions are met, and otherwise returns False
+    :param card_number: str
+    :return: bool
+    """
     for i in range(0, len(card_number)):
         # The first 4 chars must be digits (and so on)
         if (i + 1) % 5 > 0 and not card_number[i].isdigit():
@@ -44,6 +53,11 @@ def check_digits(card_number):
 
 
 def check_sum(card_number):
+    """ This function will return true if the sum of all digits in the string card_number is evenly divisible by
+    a magic_number, 10
+    :param card_number: str
+    :return: bool
+    """
     total = 0
     magic_number = 10
 
@@ -60,10 +74,13 @@ def check_sum(card_number):
 
 
 def credit_card_check(card_number):
-    """Validates card numbers to ensure they are of the form "#### #### #### ####" where each # is a digit and the
+    """ Validates card numbers to ensure they are of the form "#### #### #### ####" where each # is a digit and the
     sum of all digits is divisible evenly by 10
+    :param card_number: str
+    :return: bool
     """
 
+    # Check that we've been given a card number in the right type (a string)
     if type(card_number) is not str:
         return False
     else:
