@@ -39,10 +39,6 @@ def update_board():
     """Check if there is a piece located at each square on the board. If there is, add the piece's icon there"""
     for piece in pieces_in_play:
         board[piece.row][piece.column] = piece.icon
-        # for row in range(board_size):
-        #     for column in range(board_size):
-        #         if piece.row == row and piece.column == column:
-        #             board[row][column] = piece.icon
 
 
 def print_board():
@@ -60,22 +56,11 @@ def print_board():
 
 def piece_on_square(row, column):
     """If there is a piece on the square of the board, return true"""
-    # intending to deprecate in favour of square_is_empty
-    #
-    # for piece in pieces_in_play:
-    #     if piece.row == row and piece.column == column:
-    #         return True
-    # else:
-    #     return False
-    return not square_is_empty(row, column)
-
-
-def square_is_empty(row, column):
     for piece in pieces_in_play:
         if piece.row == row and piece.column == column:
-            return False
+            return True
     else:
-        return True
+        return False
 
 
 def get_piece_on_square(row, column):
@@ -115,7 +100,7 @@ class Piece:
         """Determines whether there is a piece on the final square of the move,
         and allows the move only if the piece is of the opposite colour. Does
         not currently allow for check."""
-        if square_is_empty(self.proposed_row, self.proposed_column):
+        if not piece_on_square(self.proposed_row, self.proposed_column):
             return True
         # allow movement to a square only with a piece of opposite colour on it
         # need to check for kings here
@@ -240,12 +225,12 @@ class Pawn(Piece):
         end_of_path = self.proposed_row + (1 * self.move_direction())
 
         for row in range(start_of_path, end_of_path, self.move_direction()):
-            if not square_is_empty(row, self.column):
+            if piece_on_square(row, self.column):
                 return False
         return True
 
     def capturing_piece(self):
-        if not square_is_empty(self.proposed_row, self.proposed_column) and self.proposed_square_is_empty_or_capturable():
+        if piece_on_square(self.proposed_row, self.proposed_column) and self.proposed_square_is_empty_or_capturable():
             return True
         else:
             return False
@@ -439,11 +424,11 @@ def move_piece():
     inputted by the user and move_legal and collision_detected. In the future,
     this will also depend on a check_for_check function.
     If a move is made then the old square is made empty"""
-    get_user_input()
-    piece = get_piece_on_square(move_piece_located_at[0], move_piece_located_at[1])
+    user_input = get_user_input()
+    piece = get_piece_on_square(user_input[0][0], user_input[0][1])
 
-    piece.proposed_row = move_piece_to[0]
-    piece.proposed_column = move_piece_to[1]
+    piece.proposed_row = user_input[1][0]
+    piece.proposed_column = user_input[1][1]
 
     if piece.move_is_legal():
         board[piece.row][piece.column] = empty_square
@@ -460,22 +445,27 @@ def move_piece():
 
 def get_user_input():
     """Takes user input, assuming a "x,y" format. Stores the 4 coordinates in 2 universal variables"""
-    # doesn't currently validate the string supplied
-    # TODO: remove use of global variables
-    # TODO: make function return piece
-    user_choice = input("Choose a piece (row,column)")
-    if "quit" in user_choice.lower():
-        sys.exit("Exiting...")
-    user_choice = user_choice.split(",")
-    move_piece_located_at[0] = int(user_choice[0])
-    move_piece_located_at[1] = int(user_choice[1])
+    # TODO: validate input
 
-    user_move = input("Choose where to move the piece (row,column)")
-    if "quit" in user_move.lower():
+    starting_square = input("Choose a piece (row,column)")
+    if "quit" in starting_square.lower():
+        sys.exit("Exiting...")
+
+    finishing_square = input("Choose where to move the piece (row,column)")
+    if "quit" in finishing_square.lower():
         sys.exit("Exiting...2")
-    user_move = user_move.split(",")
-    move_piece_to[0] = int(user_move[0])
-    move_piece_to[1] = int(user_move[1])
+
+    user_input = [[0, 0], [0, 0]]
+
+    starting_square = starting_square.split(",")
+    finishing_square = finishing_square.split(",")
+
+    user_input[0][0] = int(starting_square[0])
+    user_input[0][1] = int(starting_square[1])
+    user_input[1][0] = int(finishing_square[0])
+    user_input[1][1] = int(finishing_square[1])
+
+    return user_input
 
 
 def main():
