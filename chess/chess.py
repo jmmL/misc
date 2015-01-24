@@ -1,17 +1,17 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""A simple game of chess
-TODO:
-        check for check
-        add win conditions
-        restrict each side to only being able to move pieces of their own colour
-        handle user input more elegantly
-        handle bad user input (i.e., non-ints, or giving coordinates not on the board)
-        add special cases (castling, promotion, en passant)
+"""A simple game of chess"""
+# TODO:   check for check
+#         add win conditions
+#         restrict each side to only being able to move pieces of their own colour
+#         handle user input more elegantly
+#         handle bad user input (i.e., non-ints, or giving coordinates not on the board)
+#         add special cases (castling, promotion, en passant)
+#         write unit tests
+#
+#         bugs: currently valid to select a square of the board with no pieces on it
 
-        bugs: currently valid to select a square of the board with no pieces on it
-"""
 import sys
 import math
 
@@ -23,7 +23,13 @@ pieces_in_play = []
 captured_pieces = []
 board = [[empty_square for j in range(board_size)] for i in range(board_size)]
 
-BLACK_PAWN_STARTING_ROW = 1
+black_base_starting_row = 0
+black_pawn_starting_row = 1
+white_base_starting_row = 7
+white_pawn_starting_row = 6
+
+black_move_direction = 1
+white_move_direction = -1
 
 
 def update_board():
@@ -33,7 +39,6 @@ def update_board():
             for column in range(board_size):
                 if piece.row == row and piece.column == column:
                     board[row][column] = piece.icon
-    print_board()
 
 
 def print_board():
@@ -51,11 +56,14 @@ def print_board():
 
 def piece_on_square(row, column):
     """If there is a piece on the square of the board, return true"""
-    for piece in pieces_in_play:
-        if piece.row == row and piece.column == column:
-            return True
-    else:
-        return False
+    # intending to deprecate in favour of square_is_empty
+    #
+    # for piece in pieces_in_play:
+    #     if piece.row == row and piece.column == column:
+    #         return True
+    # else:
+    #     return False
+    return not square_is_empty(row, column)
 
 
 def square_is_empty(row, column):
@@ -64,6 +72,7 @@ def square_is_empty(row, column):
             return False
     else:
         return True
+
 
 def get_piece_on_square(row, column):
     """Returns piece on a particular square """
@@ -99,104 +108,234 @@ class Piece:
         self.row = row
         self.column = column
 
+    def proposed_square_is_empty_or_capturable(self):
+        """Determines whether there is a piece on the final square of the move,
+        and allows the move only if the piece is of the opposite colour. Does
+        not currently allow for check."""
+        if square_is_empty(self.proposed_row, self.proposed_column):
+            return True
+        # allow movement to a square only with a piece of opposite colour on it
+        # need to check for kings here
+        elif get_piece_on_square(self.proposed_row, self.proposed_column).colour != self.colour:
+            return True
+        else:
+            return False
+
 
 class Pawn(Piece):
     def __init__(self, colour, column,):
         self.colour = colour
-        self.icon = self.get_icon(colour)
-        self.row = self.get_row(colour)
+        self.icon = self.get_icon()
+        self.row = self.starting_row()
         self.column = column
 
-    def get_icon(self, colour):
-        if colour == "black":
+    def get_icon(self):
+        if self.colour == "black":
             return "♟"
         else:
             return "♙"
 
-    def get_row(self, colour):
-        if colour == "black":
-            return 1
-        else:
-            return 6
-
     def starting_row(self):
         if self.colour == "black":
-            return 1
+            return black_pawn_starting_row
         else:
-            return 6
+            return white_pawn_starting_row
 
-    def colour_modifier(self):
+    def move_direction(self):
         if self.colour == "black":
-            return 1
+            return black_move_direction
         else:
-            return -1
+            return white_move_direction
 
-    def is_move_legal(self):
+    def move_is_legal(self):
         """Determines legality of pawn moves, taking into account their ability to
         move two rows from their starting square and their need to move diagonally
         to capture a piece. Does not currently handle en passant or promotion."""
-        # could probably get rid of black/white checking with some additional maths. not sure if worth it
-        if self.colour == "black":
-            # collision code
-            if self.double_row_move and self.path_is_clear:
-                return True
-            # collision code
-            elif self.single_row_move and self.path_is_clear:
-                return True
-            elif self.capturing_move:
-                # we're capturing a piece here
-                # and sort of doing collision detection. may want to re-think structure
-                if not square_is_empty(self.proposed_row, self.proposed_column) and get_piece_on_square(self.proposed_row, self.proposed_column).colour != self.colour:
-                    return True
-            else:
-                return False
+        # collision code
+        if self.double_row_move and self.path_is_clear:
+            return True
+        # collision code
+        elif self.single_row_move and self.path_is_clear:
+            return True
+        elif self.diagonal_move and self.capturing_piece:
+            return True
+        else:
+            return False
 
     def double_row_move(self):
-        if self.row == self.starting_row and self.proposed_row == int(self.starting_row) + (2 * int(self.colour_modifier)) and self.column == self.proposed_column:
-                return True
+        if self.row == self.starting_row and self.proposed_row == self.starting_row() + (2 * self.move_direction()) and self.column == self.proposed_column:
+            return True
         else:
             return False
 
     def single_row_move(self):
-        if self.row == self.proposed_row - (1 * int(self.colour_modifier)) and self.column == self.proposed_column:
-                return True
+        if self.row == self.proposed_row - (1 * self.move_direction()) and self.column == self.proposed_column:
+            return True
         else:
             return False
 
-    def capturing_move(self):
-        if self.colour == "black":
-            if self.row == self.proposed_row - 1 and abs(self.column - self.proposed_column) == 1:
-                return True
-        elif self.colour == "white":
-            if self.row == self.proposed_row + 1 and abs(self.column - self.proposed_column) == 1:
-                return True
+    def diagonal_move(self):
+        if self.row == self.proposed_row - (1 * self.move_direction()) and abs(self.column - self.proposed_column) == 1:
+            return True
         else:
             return False
 
     def path_is_clear(self):
-        for row in range(self.row + (1 * int(self.colour_modifier)), self.proposed_row + (1 * int(self.colour_modifier))):
+        start_of_path = self.row + (1 * self.move_direction())
+        end_of_path = self.proposed_row + (1 * self.move_direction())
+
+        for row in range(start_of_path, end_of_path, self.move_direction()):
             if not square_is_empty(row, self.column):
                 return False
         return True
 
+    def capturing_piece(self):
+        if not square_is_empty(self.proposed_row, self.proposed_column) and self.proposed_square_is_empty_or_capturable:
+            return True
+        else:
+            return False
+
+
+class Rook(Piece):
+    def __init__(self, colour, column):
+        self.colour = colour
+        self.icon = self.get_icon()
+        self.row = self.starting_row()
+        self.column = column
+
+    def starting_row(self):
+        if self.colour == "black":
+            return black_base_starting_row
+        else:
+            return white_base_starting_row
+
+    def get_icon(self):
+        if self.colour == "black":
+            return "♜"
+        else:
+            return "♖"
+
+    def move_is_legal(self):
+        return lateral_move_legal(self) and self.path_is_clear and self.proposed_square_is_empty_or_capturable
+
+    def path_is_clear(self):
+        """Checks for rook collisions, taking into account that they can move in
+        one of four directions"""
+        # check all the squares between start and destination (exclusive). Return False if any piece is on these squares
+
+        if self.row == self.proposed_row:
+            move_direction = signed_step(self.proposed_column, self.column)
+            start_of_path = self.column + move_direction
+
+            for column in range(start_of_path, self.proposed_column, move_direction):
+                if piece_on_square(self.row, column):
+                    return False
+
+        elif self.column == self.proposed_column:
+            move_direction = signed_step(self.proposed_row, self.row)
+            start_of_path = self.row + move_direction
+
+            for row in range(start_of_path, self.proposed_row, move_direction):
+                if piece_on_square(row, self.column):
+                    return False
+        else:
+            return True
+
+
+class Knight(Piece):
+    def __init__(self, colour, column):
+        self.colour = colour
+        self.icon = self.get_icon()
+        self.row = self.starting_row()
+        self.column = column
+
+    def starting_row(self):
+        if self.colour == "black":
+            return black_base_starting_row
+        else:
+            return white_base_starting_row
+
+    def get_icon(self):
+        if self.colour == "black":
+            return "♞"
+        else:
+            return "♘"
+
+    def move_is_legal(self):
+        if self.move_is_L_shape and self.proposed_square_is_empty_or_capturable():
+            return True
+        else:
+            return False
+
+    def move_is_L_shape(self):
+        """Determines knight move legality"""
+        if (abs(self.row - self.proposed_row) == 2 and abs(self.column - self.proposed_column) == 1) or (abs(self.row - self.proposed_row) == 1 and abs(self.column - self.proposed_column) == 2):
+            return True
+        else:
+            return False
+
+
+class Bishop(Piece):
+    def __init__(self, colour, column):
+        self.colour = colour
+        self.icon = self.get_icon()
+        self.row = self.starting_row()
+        self.column = column
+
+    def starting_row(self):
+        if self.colour == "black":
+            return black_base_starting_row
+        else:
+            return white_base_starting_row
+
+    def get_icon(self):
+        if self.colour == "black":
+            return "♝"
+        else:
+            return "♗"
+
+    def move_is_legal(self):
+        return diagonal_move_legal(self) and self.path_is_clear and self.proposed_square_is_empty_or_capturable
+
+    def path_is_clear(self):
+        """Checks for bishop collision, taking into account that they can move in
+        one of four directions"""
+        signed_step_column = signed_step(self.proposed_column, self.column)
+        signed_step_row = signed_step(self.proposed_row, self.row)
+
+        # TODO: search the path more efficiently / make more readable
+        for row in range(self.row + signed_step_row, self.proposed_row, signed_step_row):
+            for column in range(self.column + signed_step_column, self.proposed_column, signed_step_column):
+                if abs(self.row - row) == abs(self.column - column):
+                    if piece_on_square(row, column):
+                        return False
+        else:
+            return True
+
+
+def signed_step(int1, int2):
+    # might be able to use max() and min() here rather than .copysign().
+    # not sure if that would come in handy for bishop collision detection
+    return int(math.copysign(1, int1 - int2))
+
 
 def create_pawns():
     """Places two rows of pawns; one for each colour"""
-    for i in range(board_size):
-        pieces_in_play.append(Piece("pawn", "white", "♙", 6, i))
-        pieces_in_play.append(Piece("pawn", "black", "♟", 1, i))
+    for column in range(board_size):
+        pieces_in_play.append(Pawn("white", column))
+        pieces_in_play.append(Pawn("black", column))
 
 
 def create_other_pieces():
     """Places all pieces which appear twice on the board. Their placement is
     mirrored across the columns of the board"""
     for i in range(2):
-        pieces_in_play.append(Piece("rook", "white", "♖", 7, 0 + (i * (board_size - 1)),))
-        pieces_in_play.append(Piece("rook", "black", "♜", 0, 0 + (i * (board_size - 1)),))
-        pieces_in_play.append(Piece("knight", "white", "♘", 7, 1 + (i * (board_size - 3)),))
-        pieces_in_play.append(Piece("knight", "black", "♞", 0, 1 + (i * (board_size - 3)),))
-        pieces_in_play.append(Piece("bishop", "white", "♗", 7, 2 + (i * (board_size - 5)),))
-        pieces_in_play.append(Piece("bishop", "black", "♝", 0, 2 + (i * (board_size - 5)),))
+        pieces_in_play.append(Rook("white", 0 + (i * (board_size - 1))))
+        pieces_in_play.append(Rook("black", 0 + (i * (board_size - 1))))
+        pieces_in_play.append(Knight("white", 1 + (i * (board_size - 3))))
+        pieces_in_play.append(Knight("black", 1 + (i * (board_size - 3))))
+        pieces_in_play.append(Bishop("white", 2 + (i * (board_size - 5))))
+        pieces_in_play.append(Bishop("black", 2 + (i * (board_size - 5))))
 
 
 def create_royalty():
@@ -221,12 +360,16 @@ def move_piece():
     If a move is made then the old square is made empty"""
     get_user_input()
     piece = get_piece_on_square(move_piece_located_at[0], move_piece_located_at[1])
+
     piece.proposed_row = move_piece_to[0]
     piece.proposed_column = move_piece_to[1]
-    if move_legal(piece) and not collision_detected(piece):
+
+    if piece.move_is_legal:
         board[piece.row][piece.column] = empty_square
+
         if piece_on_square(piece.proposed_row, piece.proposed_column):
             capture_piece(piece.proposed_row, piece.proposed_column)
+
         piece.row = piece.proposed_row
         piece.column = piece.proposed_column
     else:
@@ -237,35 +380,21 @@ def move_piece():
 def get_user_input():
     """Takes user input, assuming a "x,y" format. Stores the 4 coordinates in 2 universal variables"""
     # doesn't currently validate the string supplied
+    # TODO: remove use of global variables
+    # TODO: make function return piece
     user_choice = input("Choose a piece (row,column)")
     if "quit" in user_choice.lower():
         sys.exit("Exiting...")
+    user_choice = user_choice.split(",")
     move_piece_located_at[0] = int(user_choice[0])
-    move_piece_located_at[1] = int(user_choice[2])
+    move_piece_located_at[1] = int(user_choice[1])
+
     user_move = input("Choose where to move the piece (row,column)")
     if "quit" in user_move.lower():
         sys.exit("Exiting...2")
+    user_move = user_move.split(",")
     move_piece_to[0] = int(user_move[0])
-    move_piece_to[1] = int(user_move[2])
-
-
-def move_legal(piece):
-    """Calls relevant functions for determining legality"""
-    if piece.name == "bishop":
-        return diagonal_move_legal(piece)
-    elif piece.name == "rook":
-        return lateral_move_legal(piece)
-    elif piece.name == "queen":
-        # If the queen behaves like either a bishop or a rook, return true
-        return lateral_move_legal(piece) or diagonal_move_legal(piece)
-    elif piece.name == "pawn":
-        return pawn_move_legal(piece)
-    elif piece.name == "knight":
-        return knight_move_legal(piece)
-    elif piece.name == "king":
-        return king_move_legal(piece)
-    else:
-        return False
+    move_piece_to[1] = int(user_move[1])
 
 
 def diagonal_move_legal(piece):
@@ -278,41 +407,8 @@ def lateral_move_legal(piece):
     """A rook moves either along a row or a column, but not both """
     if ((piece.row - piece.proposed_row == 0) and (abs(piece.column - piece.proposed_column) > 0)) or ((abs(piece.row - piece.proposed_row) > 0) and (piece.column - piece.proposed_column == 0)):
         return True
-
-
-def pawn_move_legal(piece):
-    """Determines legality of pawn moves, taking into account their ability to
-    move two rows from their starting square and their need to move diagonally
-    to capture a piece. Does not currently handle en passant or promotion."""
-    # could probably get rid of black/white checking with some additional maths. not sure if worth it
-    if piece.colour == "black":
-        if piece.row == 1 and piece.proposed_row == 3 and piece.column == piece.proposed_column:
-            # collision code
-            if (not piece_on_square(2, piece.column)) or (not piece_on_square(3, piece.column)):
-                return True
-        elif piece.row == piece.proposed_row - 1 and piece.column == piece.proposed_column:
-            if not piece_on_square(piece.proposed_row, piece.proposed_column):
-                return True
-        elif piece.row == piece.proposed_row - 1 and abs(piece.column - piece.proposed_column) == 1:
-            # we're capturing a piece here
-            # and sort of doing collision detection. may want to re-think structure
-            if piece_on_square(piece.proposed_row, piece.proposed_column) and get_piece_on_square(piece.proposed_row, piece.proposed_column).colour != piece.colour:
-                return True
-        else:
-            return False
-
-    elif piece.colour == "white":
-        if piece.row == 6 and piece.proposed_row == 4 and piece.column == piece.proposed_column:
-            if (not piece_on_square(5, piece.column)) or (not piece_on_square(4, piece.column)):
-                return True
-        elif piece.row == piece.proposed_row + 1 and piece.column == piece.proposed_column:
-            if not piece_on_square(piece.proposed_row, piece.proposed_column):
-                return True
-        elif piece.row == piece.proposed_row + 1 and abs(piece.column - piece.proposed_column) == 1:
-            if piece_on_square(piece.proposed_row, piece.proposed_column) and get_piece_on_square(piece.proposed_row, piece.proposed_column).colour != piece.colour:
-                return True
-        else:
-            return False
+    else:
+        return False
 
 
 def knight_move_legal(piece):
@@ -332,68 +428,40 @@ def king_move_legal(piece):
         return False
 
 
-def collision_detected(piece):
-    """Calls the relevant functions to check for collision of different types
-    of pieces"""
-    # want to check all squares between start and finish - 1
-    # also check final square to see if piece is of SAME colour and return False
-    # pawn collision currently implemented in pawn_move_legal()
-    if piece.name == "rook":
-        return rook_collision_detected(piece)
-    elif piece.name == "bishop":
-        return bishop_collision_detected(piece)
-    elif piece.name == "queen":
-        # queens behave either as rooks or bishops
-        return rook_collision_detected(piece) or bishop_collision_detected(piece)
-    elif piece.name == "knight":
-        # knights only care about the square they land on
-        return landing_square_collision_detected(piece)
-    elif piece.name == "king":
-        # kings care about the square they land on, and not moving into check
-        # checking for check is not currently implemented
-        return landing_square_collision_detected(piece)
-    else:
-        return False
-
-
-def rook_collision_detected(piece):
-    """Checks for rook collisions, taking into account that they can move in
-    one of four directions"""
-    # might be able to use max() and min() here rather than .copysign(). not sure if that would come in handy for bishop collision detection
-    signed_step_column = int(math.copysign(1, piece.proposed_column - piece.column))
-    signed_step_row = int(math.copysign(1, piece.proposed_row - piece.row))
-
-    # check all the squares between start and destination (exclusive). return True if any piece is on these squares
-    if piece.row - piece.proposed_row == 0:
-        for column in range(piece.column + signed_step_column, piece.proposed_column, signed_step_column):
-            if piece_on_square(piece.row, column):
-                return True
-    elif piece.column - piece.proposed_column == 0:
-        for row in range(piece.row + signed_step_row, piece.proposed_row, signed_step_row):
-            if piece_on_square(row, piece.column):
-                return True
-    else:
-        landing_square_collision_detected(piece)
+# def collision_detected(piece):
+#     """Calls the relevant functions to check for collision of different types
+#     of pieces"""
+#     if piece.name == "queen":
+#         # queens behave either as rooks or bishops
+#         return rook_collision_detected(piece) or bishop_collision_detected(piece)
+#     elif piece.name == "king":
+#         # kings care about the square they land on, and not moving into check
+#         # checking for check is not currently implemented
+#         return landing_square_collision_detected(piece)
+#     else:
+#         return False
 
 
 def bishop_collision_detected(piece):
     """Checks for bishop collision, taking into account that they can move in
     one of four directions"""
-    signed_step_column = int(math.copysign(1, piece.proposed_column - piece.column))
-    signed_step_row = int(math.copysign(1, piece.proposed_row - piece.row))
+    signed_step_column = signed_step(piece.proposed_column, piece.column)
+    signed_step_row = signed_step(piece.proposed_row, piece.row)
+
     for row in range(piece.row + signed_step_row, piece.proposed_row, signed_step_row):
         for column in range(piece.column + signed_step_column, piece.proposed_column, signed_step_column):
             if abs(piece.row - row) == abs(piece.column - column):
                 if piece_on_square(row, column):
                     return True
     else:
-        landing_square_collision_detected(piece)
+        return landing_square_collision_detected(piece)
 
 
 def landing_square_collision_detected(piece):
     """Determines whether there is a piece on the final square of the move,
     and allows the move only if the piece is of the opposite colour. Does
-    not currently allow for check."""
+    not currently allow for check.
+    In the process of being deprecated by proposed_square_is_empty_or_capturable"""
     if not piece_on_square(piece.proposed_row, piece.proposed_column):
         return False
     # allow movement to a square only with a piece of opposite colour on it
@@ -412,6 +480,8 @@ def main():
     print("Remember to set your terminal to black text on a white background!\n")
     create_pieces()
     update_board()
+    print_board()
+
     while not game_over:
         if turn_counter % 2 == 1:
             print("White's turn")
@@ -419,6 +489,7 @@ def main():
             print("Black's turn")
         move_piece()
         update_board()
+        print_board()
         turn_counter += 1
 
 
