@@ -1,3 +1,6 @@
+#! /usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 """A simple game of chess
 TODO:
         check for check
@@ -20,6 +23,7 @@ pieces_in_play = []
 captured_pieces = []
 board = [[empty_square for j in range(board_size)] for i in range(board_size)]
 
+
 def update_board():
     """Check if there is a piece located at each square on the board. if there is, add the piece's icon there"""
     for piece in pieces_in_play:
@@ -29,17 +33,19 @@ def update_board():
                     board[row][column] = piece.icon
     print_board()
 
+
 def print_board():
     """Prints out the board 1 square at a time, with row and column numbering"""
     for row in range(board_size):
-        print(row, end = " ")
+        print(row, end=" ")
         for column in range(board_size):
-            print(board[row][column], end = " ")
+            print(board[row][column], end=" ")
         print()
-    print(" ", end = " ")
+    print(" ", end=" ")
     for column in range(board_size):
-        print(column, end = " ")
+        print(column, end=" ")
     print()
+
 
 def piece_on_square(row, column):
     """If there is a piece on the square of the board, return true"""
@@ -49,6 +55,7 @@ def piece_on_square(row, column):
     else:
         return False
 
+
 def get_piece_on_square(row, column):
     """Returns piece on a particular square """
     # need to reuse this more often
@@ -56,8 +63,9 @@ def get_piece_on_square(row, column):
         if piece.row == row and piece.column == column:
             return piece
 
+
 def capture_piece(row, column):
-    """Finds the piece to be captured, removes it from play, and places it in another list for easy printing later on """
+    """Finds the piece to be captured, removes it from play, and places it in another list for easy printing later on"""
     # needs checks for colours!!
     # needs exception for kings!!
     piece = get_piece_on_square(row, column)
@@ -65,14 +73,16 @@ def capture_piece(row, column):
     pieces_in_play.remove(piece)
     print("Captured %s" % captured_pieces[-1].icon)
 
+
 class Piece:
     """Pieces are initialised with a name, colour and icon.
     Additionally they have attributes row and column that correspond to their
     current location, and the attributes proposed_row and proposed_column which
-    correspond to coordinates of their proposed move (and are initialisd at 0,0)
+    correspond to coordinates of their proposed move (and are initialised at 0,0)
     """
     proposed_row = 0
     proposed_column = 0
+
     def __init__(self, name, colour, icon, row, column,):
         self.name = name
         self.colour = colour
@@ -80,11 +90,13 @@ class Piece:
         self.row = row
         self.column = column
 
+
 def create_pawns():
     """Places two rows of pawns; one for each colour"""
     for i in range(board_size):
         pieces_in_play.append(Piece("pawn", "white", "♙", 6, i))
         pieces_in_play.append(Piece("pawn", "black", "♟", 1, i))
+
 
 def create_other_pieces():
     """Places all pieces which appear twice on the board. Their placement is
@@ -97,6 +109,7 @@ def create_other_pieces():
         pieces_in_play.append(Piece("bishop", "white", "♗", 7, 2 + (i * (board_size - 5)),))
         pieces_in_play.append(Piece("bishop", "black", "♝", 0, 2 + (i * (board_size - 5)),))
 
+
 def create_royalty():
     """Places kings and queens in specified squares"""
     pieces_in_play.append(Piece("king", "white", "♔", 7, 4,))
@@ -104,11 +117,13 @@ def create_royalty():
     pieces_in_play.append(Piece("queen", "white", "♕", 7, 3,))
     pieces_in_play.append(Piece("queen", "black", "♛", 0, 3,))
 
+
 def create_pieces():
     """Calls all the functions required to populate the board"""
     create_pawns()
     create_other_pieces()
     create_royalty()
+
 
 def move_piece():
     """Decides whether or not to move the piece, based on the coordinates
@@ -129,6 +144,7 @@ def move_piece():
         print("Sorry, that move is invalid")
         move_piece()
 
+
 def get_user_input():
     """Takes user input, assuming a "x,y" format. Stores the 4 coordinates in 2 universal variables"""
     # doesn't currently validate the string supplied
@@ -143,6 +159,7 @@ def get_user_input():
     move_piece_to[0] = int(user_move[0])
     move_piece_to[1] = int(user_move[2])
 
+
 def move_legal(piece):
     """Calls relevant functions for determining legality"""
     if piece.name == "bishop":
@@ -151,7 +168,7 @@ def move_legal(piece):
         return lateral_move_legal(piece)
     elif piece.name == "queen":
         # If the queen behaves like either a bishop or a rook, return true
-        return (lateral_move_legal(piece) or diagonal_move_legal(piece))
+        return lateral_move_legal(piece) or diagonal_move_legal(piece)
     elif piece.name == "pawn":
         return pawn_move_legal(piece)
     elif piece.name == "knight":
@@ -161,15 +178,18 @@ def move_legal(piece):
     else:
         return False
 
+
 def diagonal_move_legal(piece):
     """A bishop has to move along diagonals, so the abs deltaX and the abs deltaY should be equal """
     if abs(piece.row - piece.proposed_row) == abs(piece.column - piece.proposed_column):
         return True
 
+
 def lateral_move_legal(piece):
     """A rook moves either along a row or a column, but not both """
     if ((piece.row - piece.proposed_row == 0) and (abs(piece.column - piece.proposed_column) > 0)) or ((abs(piece.row - piece.proposed_row) > 0) and (piece.column - piece.proposed_column == 0)):
         return True
+
 
 def pawn_move_legal(piece):
     """Determines legality of pawn moves, taking into account their ability to
@@ -191,6 +211,7 @@ def pawn_move_legal(piece):
                 return True
         else:
             return False
+
     elif piece.colour == "white":
         if piece.row == 6 and piece.proposed_row == 4 and piece.column == piece.proposed_column:
             if (not piece_on_square(5, piece.column)) or (not piece_on_square(4, piece.column)):
@@ -211,6 +232,7 @@ def knight_move_legal(piece):
     else:
         return False
 
+
 def king_move_legal(piece):
     """Determines king move legality. The check status of the king is not
     currently taken into account"""
@@ -218,6 +240,7 @@ def king_move_legal(piece):
         return True
     else:
         return False
+
 
 def collision_detected(piece):
     """Calls the relevant functions to check for collision of different types
@@ -231,7 +254,7 @@ def collision_detected(piece):
         return bishop_collision_detected(piece)
     elif piece.name == "queen":
         # queens behave either as rooks or bishops
-        return (rook_collision_detected(piece) or bishop_collision_detected(piece))
+        return rook_collision_detected(piece) or bishop_collision_detected(piece)
     elif piece.name == "knight":
         # knights only care about the square they land on
         return landing_square_collision_detected(piece)
@@ -241,6 +264,7 @@ def collision_detected(piece):
         return landing_square_collision_detected(piece)
     else:
         return False
+
 
 def rook_collision_detected(piece):
     """Checks for rook collisions, taking into account that they can move in
@@ -261,6 +285,7 @@ def rook_collision_detected(piece):
     else:
         landing_square_collision_detected(piece)
 
+
 def bishop_collision_detected(piece):
     """Checks for bishop collision, taking into account that they can move in
     one of four directions"""
@@ -274,6 +299,7 @@ def bishop_collision_detected(piece):
     else:
         landing_square_collision_detected(piece)
 
+
 def landing_square_collision_detected(piece):
     """Determines whether there is a piece on the final square of the move,
     and allows the move only if the piece is of the opposite colour. Does
@@ -286,6 +312,7 @@ def landing_square_collision_detected(piece):
         return False
     else:
         return True
+
 
 def main():
     """Calls the relevant functions to set up the board, and then loops each move
@@ -303,6 +330,7 @@ def main():
         move_piece()
         update_board()
         turn_counter += 1
+
 
 if __name__ == "__main__":
     main()
