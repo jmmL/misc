@@ -23,6 +23,8 @@ pieces_in_play = []
 captured_pieces = []
 board = [[empty_square for j in range(board_size)] for i in range(board_size)]
 
+BLACK_PAWN_STARTING_ROW = 1
+
 
 def update_board():
     """Check if there is a piece located at each square on the board. if there is, add the piece's icon there"""
@@ -55,6 +57,13 @@ def piece_on_square(row, column):
     else:
         return False
 
+
+def square_is_empty(row, column):
+    for piece in pieces_in_play:
+        if piece.row == row and piece.column == column:
+            return False
+    else:
+        return True
 
 def get_piece_on_square(row, column):
     """Returns piece on a particular square """
@@ -89,6 +98,86 @@ class Piece:
         self.icon = icon
         self.row = row
         self.column = column
+
+
+class Pawn(Piece):
+    def __init__(self, colour, column,):
+        self.colour = colour
+        self.icon = self.get_icon(colour)
+        self.row = self.get_row(colour)
+        self.column = column
+
+    def get_icon(self, colour):
+        if colour == "black":
+            return "♟"
+        else:
+            return "♙"
+
+    def get_row(self, colour):
+        if colour == "black":
+            return 1
+        else:
+            return 6
+
+    def starting_row(self):
+        if self.colour == "black":
+            return 1
+        else:
+            return 6
+
+    def colour_modifier(self):
+        if self.colour == "black":
+            return 1
+        else:
+            return -1
+
+    def is_move_legal(self):
+        """Determines legality of pawn moves, taking into account their ability to
+        move two rows from their starting square and their need to move diagonally
+        to capture a piece. Does not currently handle en passant or promotion."""
+        # could probably get rid of black/white checking with some additional maths. not sure if worth it
+        if self.colour == "black":
+            # collision code
+            if self.double_row_move and self.path_is_clear:
+                return True
+            # collision code
+            elif self.single_row_move and self.path_is_clear:
+                return True
+            elif self.capturing_move:
+                # we're capturing a piece here
+                # and sort of doing collision detection. may want to re-think structure
+                if not square_is_empty(self.proposed_row, self.proposed_column) and get_piece_on_square(self.proposed_row, self.proposed_column).colour != self.colour:
+                    return True
+            else:
+                return False
+
+    def double_row_move(self):
+        if self.row == self.starting_row and self.proposed_row == int(self.starting_row) + (2 * int(self.colour_modifier)) and self.column == self.proposed_column:
+                return True
+        else:
+            return False
+
+    def single_row_move(self):
+        if self.row == self.proposed_row - (1 * int(self.colour_modifier)) and self.column == self.proposed_column:
+                return True
+        else:
+            return False
+
+    def capturing_move(self):
+        if self.colour == "black":
+            if self.row == self.proposed_row - 1 and abs(self.column - self.proposed_column) == 1:
+                return True
+        elif self.colour == "white":
+            if self.row == self.proposed_row + 1 and abs(self.column - self.proposed_column) == 1:
+                return True
+        else:
+            return False
+
+    def path_is_clear(self):
+        for row in range(self.row + (1 * int(self.colour_modifier)), self.proposed_row + (1 * int(self.colour_modifier))):
+            if not square_is_empty(row, self.column):
+                return False
+        return True
 
 
 def create_pawns():
@@ -224,6 +313,7 @@ def pawn_move_legal(piece):
                 return True
         else:
             return False
+
 
 def knight_move_legal(piece):
     """Determines knight move legality"""
