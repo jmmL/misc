@@ -32,50 +32,6 @@ black_move_direction = 1
 white_move_direction = -1
 
 
-def update_board():
-    """For each piece in play, add the piece's icon to the piece's coordinates on the board"""
-    for piece in pieces_in_play:
-        board[piece.row][piece.column] = piece.icon
-
-
-def print_board():
-    """Prints out the board 1 square at a time, with row and column numbering"""
-    for row in range(board_size):
-        print(row, end=" ")
-        for column in range(board_size):
-            print(board[row][column], end=" ")
-        print()
-    print(" ", end=" ")
-    for column in range(board_size):
-        print(column, end=" ")
-    print()
-
-
-def piece_on_square(row, column):
-    """If there is a piece on the square of the board, return true"""
-    for piece in pieces_in_play:
-        if piece.row == row and piece.column == column:
-            return True
-    else:
-        return False
-
-
-def get_piece_on_square(row, column):
-    """Returns piece on a particular square """
-    for piece in pieces_in_play:
-        if piece.row == row and piece.column == column:
-            return piece
-
-
-def capture_piece(piece):
-    """Removes piece from play, and places it in a list of captured pieces for easy printing later on"""
-    # needs checks for colours!!
-    # needs exception for kings!!
-    captured_pieces.append(piece)
-    pieces_in_play.remove(piece)
-    print("Captured %s" % captured_pieces[-1].icon)
-
-
 class Piece:
     """Most pieces are initialised with only a colour and a column.
     The attributes row and column that correspond to their
@@ -373,6 +329,50 @@ class King(Piece):
             return False
 
 
+def update_board():
+    """For each piece in play, add the piece's icon to the piece's coordinates on the board"""
+    for piece in pieces_in_play:
+        board[piece.row][piece.column] = piece.icon
+
+
+def print_board():
+    """Prints out the board 1 square at a time, with row and column numbering"""
+    for row in range(board_size):
+        print(row, end=" ")
+        for column in range(board_size):
+            print(board[row][column], end=" ")
+        print()
+    print(" ", end=" ")
+    for column in range(board_size):
+        print(column, end=" ")
+    print()
+
+
+def piece_on_square(row, column):
+    """If there is a piece on the square of the board, return true"""
+    for piece in pieces_in_play:
+        if piece.row == row and piece.column == column:
+            return True
+    else:
+        return False
+
+
+def get_piece_on_square(row, column):
+    """Returns piece on a particular square """
+    for piece in pieces_in_play:
+        if piece.row == row and piece.column == column:
+            return piece
+
+
+def capture_piece(piece):
+    """Removes piece from play, and places it in a list of captured pieces for easy printing later on"""
+    # needs checks for colours!!
+    # needs exception for kings!!
+    captured_pieces.append(piece)
+    pieces_in_play.remove(piece)
+    print("Captured %s" % captured_pieces[-1].icon)
+
+
 def get_move_direction(proposed, current):
     """Gets the direction that the piece is moving in across the board: 1 if it is going from low to high, or -1 if
     going from high to low
@@ -442,8 +442,8 @@ def move_piece():
 
     if piece.move_is_legal():
         if piece_on_square(piece.proposed_row, piece.proposed_column):
-            captured_piece = get_piece_on_square(piece.proposed_row, piece.proposed_column)
-            capture_piece(captured_piece)
+            piece_to_capture = get_piece_on_square(piece.proposed_row, piece.proposed_column)
+            capture_piece(piece_to_capture)
 
         clear_old_board_position(piece)
         set_new_piece_position(piece)
@@ -454,7 +454,7 @@ def move_piece():
 
 
 def get_user_input():
-    """Takes user input, assuming a "x,y" format. Stores the 4 coordinates in 2 universal variables"""
+    """Takes user input, assuming a "x,y" format. Stores the 4 coordinates in a list"""
     # TODO: validate input
 
     starting_square = input("Choose a piece (row,column)")
@@ -478,6 +478,13 @@ def get_user_input():
     return user_input
 
 
+def announce_to_players(turn_counter):
+    if turn_counter % 2 == 1:
+        print("White's turn")
+    else:
+        print("Black's turn")
+
+
 def main():
     """Calls the relevant functions to set up the board, and then loops each move
     of the game. Win conditions are not currently implemented."""
@@ -489,10 +496,7 @@ def main():
     print_board()
 
     while not game_over:
-        if turn_counter % 2 == 1:
-            print("White's turn")
-        else:
-            print("Black's turn")
+        announce_to_players(turn_counter)
         move_piece()
         update_board()
         print_board()
