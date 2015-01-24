@@ -28,12 +28,15 @@ black_pawn_starting_row = 1
 white_base_starting_row = 7
 white_pawn_starting_row = 6
 
+queen_starting_column = 3
+king_starting_column = 4
+
 black_move_direction = 1
 white_move_direction = -1
 
 
 def update_board():
-    """Check if there is a piece located at each square on the board. if there is, add the piece's icon there"""
+    """Check if there is a piece located at each square on the board. If there is, add the piece's icon there"""
     for piece in pieces_in_play:
         for row in range(board_size):
             for column in range(board_size):
@@ -101,10 +104,8 @@ class Piece:
     proposed_row = 0
     proposed_column = 0
 
-    def __init__(self, name, colour, icon, row, column,):
-        self.name = name
+    def __init__(self, colour, row, column,):
         self.colour = colour
-        self.icon = icon
         self.row = row
         self.column = column
 
@@ -120,6 +121,58 @@ class Piece:
             return True
         else:
             return False
+
+    def diagonal_move_legal(self):
+        """A bishop has to move along diagonals, so the abs deltaX and the abs deltaY should be equal """
+        if abs(self.row - self.proposed_row) == abs(self.column - self.proposed_column):
+            return True
+
+    def straight_move_legal(self):
+        """A rook moves either along a row or a column, but not both """
+        if (self.row - self.proposed_row == 0) and (abs(self.column - self.proposed_column) > 0):
+            return True
+        elif (abs(self.row - self.proposed_row) > 0) and (self.column - self.proposed_column == 0):
+            return True
+        else:
+            return False
+
+    def diagonal_path_is_clear(self):
+        """Checks for bishop collision, taking into account that they can move in
+        one of four directions"""
+        signed_step_column = signed_step(self.proposed_column, self.column)
+        signed_step_row = signed_step(self.proposed_row, self.row)
+
+        # TODO: search the path more efficiently / make more readable
+        for row in range(self.row + signed_step_row, self.proposed_row, signed_step_row):
+            for column in range(self.column + signed_step_column, self.proposed_column, signed_step_column):
+                if abs(self.row - row) == abs(self.column - column):
+                    if piece_on_square(row, column):
+                        return False
+        else:
+            return True
+
+    def straight_path_is_clear(self):
+        """Checks for rook collisions, taking into account that they can move in
+        one of four directions"""
+        # check all the squares between start and destination (exclusive). Return False if any piece is on these squares
+
+        if self.row == self.proposed_row:
+            move_direction = signed_step(self.proposed_column, self.column)
+            start_of_path = self.column + move_direction
+
+            for column in range(start_of_path, self.proposed_column, move_direction):
+                if piece_on_square(self.row, column):
+                    return False
+
+        elif self.column == self.proposed_column:
+            move_direction = signed_step(self.proposed_row, self.row)
+            start_of_path = self.row + move_direction
+
+            for row in range(start_of_path, self.proposed_row, move_direction):
+                if piece_on_square(row, self.column):
+                    return False
+        else:
+            return True
 
 
 class Pawn(Piece):
@@ -216,30 +269,10 @@ class Rook(Piece):
             return "♖"
 
     def move_is_legal(self):
-        return lateral_move_legal(self) and self.path_is_clear and self.proposed_square_is_empty_or_capturable
+        return self.straight_move_legal and self.path_is_clear and self.proposed_square_is_empty_or_capturable
 
     def path_is_clear(self):
-        """Checks for rook collisions, taking into account that they can move in
-        one of four directions"""
-        # check all the squares between start and destination (exclusive). Return False if any piece is on these squares
-
-        if self.row == self.proposed_row:
-            move_direction = signed_step(self.proposed_column, self.column)
-            start_of_path = self.column + move_direction
-
-            for column in range(start_of_path, self.proposed_column, move_direction):
-                if piece_on_square(self.row, column):
-                    return False
-
-        elif self.column == self.proposed_column:
-            move_direction = signed_step(self.proposed_row, self.row)
-            start_of_path = self.row + move_direction
-
-            for row in range(start_of_path, self.proposed_row, move_direction):
-                if piece_on_square(row, self.column):
-                    return False
-        else:
-            return True
+        return self.straight_path_is_clear
 
 
 class Knight(Piece):
@@ -295,22 +328,72 @@ class Bishop(Piece):
             return "♗"
 
     def move_is_legal(self):
-        return diagonal_move_legal(self) and self.path_is_clear and self.proposed_square_is_empty_or_capturable
+        return self.diagonal_move_legal and self.path_is_clear and self.proposed_square_is_empty_or_capturable
 
     def path_is_clear(self):
-        """Checks for bishop collision, taking into account that they can move in
-        one of four directions"""
-        signed_step_column = signed_step(self.proposed_column, self.column)
-        signed_step_row = signed_step(self.proposed_row, self.row)
+        return self.diagonal_path_is_clear
 
-        # TODO: search the path more efficiently / make more readable
-        for row in range(self.row + signed_step_row, self.proposed_row, signed_step_row):
-            for column in range(self.column + signed_step_column, self.proposed_column, signed_step_column):
-                if abs(self.row - row) == abs(self.column - column):
-                    if piece_on_square(row, column):
-                        return False
+
+class Queen(Piece):
+    def __init__(self, colour):
+        self.colour = colour
+        self.icon = self.get_icon()
+        self.row = self.starting_row()
+        self.column = queen_starting_column
+
+    def starting_row(self):
+        if self.colour == "black":
+            return black_base_starting_row
         else:
+            return white_base_starting_row
+
+    def get_icon(self):
+        if self.colour == "black":
+            return "♛"
+        else:
+            return "♕"
+
+    def move_is_legal(self):
+        if (self.diagonal_move_legal and self.diagonal_path_is_clear) or (self.straight_move_legal and self.straight_path_is_clear):
+            if self.proposed_square_is_empty_or_capturable:
+                return True
+        else:
+            return False
+
+
+class King(Piece):
+    def __init__(self, colour):
+        self.colour = colour
+        self.icon = self.get_icon()
+        self.row = self.starting_row()
+        self.column = king_starting_column
+
+    def starting_row(self):
+        if self.colour == "black":
+            return black_base_starting_row
+        else:
+            return white_base_starting_row
+
+    def get_icon(self):
+        if self.colour == "black":
+            return "♚"
+        else:
+            return "♔"
+
+    def move_is_legal(self):
+        return self.move_is_only_one_square and self.proposed_square_is_empty_or_capturable
+
+    def move_is_only_one_square(self):
+        """Determines king move legality. The check status of the king is not
+        currently taken into account"""
+        if abs(self.row - self.proposed_row) == 1 and abs(self.column - self.proposed_column) == 0:
             return True
+        elif abs(self.row - self.proposed_row) == 1 and abs(self.column - self.proposed_column) == 1:
+            return True
+        elif abs(self.row - self.proposed_row) == 0 and abs(self.column - self.proposed_column) == 1:
+            return True
+        else:
+            return False
 
 
 def signed_step(int1, int2):
@@ -340,10 +423,10 @@ def create_other_pieces():
 
 def create_royalty():
     """Places kings and queens in specified squares"""
-    pieces_in_play.append(Piece("king", "white", "♔", 7, 4,))
-    pieces_in_play.append(Piece("king", "black", "♚", 0, 4,))
-    pieces_in_play.append(Piece("queen", "white", "♕", 7, 3,))
-    pieces_in_play.append(Piece("queen", "black", "♛", 0, 3,))
+    pieces_in_play.append(King("white"))
+    pieces_in_play.append(King("black"))
+    pieces_in_play.append(Queen("white"))
+    pieces_in_play.append(Queen("black"))
 
 
 def create_pieces():
@@ -395,81 +478,6 @@ def get_user_input():
     user_move = user_move.split(",")
     move_piece_to[0] = int(user_move[0])
     move_piece_to[1] = int(user_move[1])
-
-
-def diagonal_move_legal(piece):
-    """A bishop has to move along diagonals, so the abs deltaX and the abs deltaY should be equal """
-    if abs(piece.row - piece.proposed_row) == abs(piece.column - piece.proposed_column):
-        return True
-
-
-def lateral_move_legal(piece):
-    """A rook moves either along a row or a column, but not both """
-    if ((piece.row - piece.proposed_row == 0) and (abs(piece.column - piece.proposed_column) > 0)) or ((abs(piece.row - piece.proposed_row) > 0) and (piece.column - piece.proposed_column == 0)):
-        return True
-    else:
-        return False
-
-
-def knight_move_legal(piece):
-    """Determines knight move legality"""
-    if (abs(piece.row - piece.proposed_row) == 2 and abs(piece.column - piece.proposed_column) == 1) or (abs(piece.row - piece.proposed_row) == 1 and abs(piece.column - piece.proposed_column) == 2):
-        return True
-    else:
-        return False
-
-
-def king_move_legal(piece):
-    """Determines king move legality. The check status of the king is not
-    currently taken into account"""
-    if (abs(piece.row - piece.proposed_row) == 1 and abs(piece.column - piece.proposed_column) == 0) or (abs(piece.row - piece.proposed_row) == 1 and abs(piece.column - piece.proposed_column) == 1) or (abs(piece.row - piece.proposed_row) == 0 and abs(piece.column - piece.proposed_column) == 1):
-        return True
-    else:
-        return False
-
-
-# def collision_detected(piece):
-#     """Calls the relevant functions to check for collision of different types
-#     of pieces"""
-#     if piece.name == "queen":
-#         # queens behave either as rooks or bishops
-#         return rook_collision_detected(piece) or bishop_collision_detected(piece)
-#     elif piece.name == "king":
-#         # kings care about the square they land on, and not moving into check
-#         # checking for check is not currently implemented
-#         return landing_square_collision_detected(piece)
-#     else:
-#         return False
-
-
-def bishop_collision_detected(piece):
-    """Checks for bishop collision, taking into account that they can move in
-    one of four directions"""
-    signed_step_column = signed_step(piece.proposed_column, piece.column)
-    signed_step_row = signed_step(piece.proposed_row, piece.row)
-
-    for row in range(piece.row + signed_step_row, piece.proposed_row, signed_step_row):
-        for column in range(piece.column + signed_step_column, piece.proposed_column, signed_step_column):
-            if abs(piece.row - row) == abs(piece.column - column):
-                if piece_on_square(row, column):
-                    return True
-    else:
-        return landing_square_collision_detected(piece)
-
-
-def landing_square_collision_detected(piece):
-    """Determines whether there is a piece on the final square of the move,
-    and allows the move only if the piece is of the opposite colour. Does
-    not currently allow for check.
-    In the process of being deprecated by proposed_square_is_empty_or_capturable"""
-    if not piece_on_square(piece.proposed_row, piece.proposed_column):
-        return False
-    # allow movement to a square only with a piece of opposite colour on it
-    # need to check for kings here
-    elif get_piece_on_square(piece.proposed_row, piece.proposed_column).colour != piece.colour:
-        return False
-    else:
-        return True
 
 
 def main():
