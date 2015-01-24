@@ -100,6 +100,7 @@ class Piece:
             for column in range(start_of_path, self.proposed_column, move_direction):
                 if piece_on_square(self.row, column):
                     return False
+            return True
 
         elif self.column == self.proposed_column:
             move_direction = get_move_direction(self.proposed_row, self.row)
@@ -108,8 +109,12 @@ class Piece:
             for row in range(start_of_path, self.proposed_row, move_direction):
                 if piece_on_square(row, self.column):
                     return False
-        else:
             return True
+
+        else:
+            # This is never hit when called on a straight path!
+            # Throw exception perhaps?
+            return False
 
 
 class Pawn(Piece):
@@ -288,8 +293,7 @@ class Queen(Piece):
 
     def move_is_legal(self):
         if (self.diagonal_move_legal() and self.diagonal_path_is_clear) or (self.straight_move_legal() and self.straight_path_is_clear()):
-            if self.proposed_square_is_empty_or_capturable():
-                return True
+            return self.proposed_square_is_empty_or_capturable()
         else:
             return False
 
