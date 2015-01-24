@@ -38,10 +38,11 @@ white_move_direction = -1
 def update_board():
     """Check if there is a piece located at each square on the board. If there is, add the piece's icon there"""
     for piece in pieces_in_play:
-        for row in range(board_size):
-            for column in range(board_size):
-                if piece.row == row and piece.column == column:
-                    board[row][column] = piece.icon
+        board[piece.row][piece.column] = piece.icon
+        # for row in range(board_size):
+        #     for column in range(board_size):
+        #         if piece.row == row and piece.column == column:
+        #             board[row][column] = piece.icon
 
 
 def print_board():
@@ -106,6 +107,7 @@ class Piece:
 
     def __init__(self, colour, row, column,):
         self.colour = colour
+        self.icon = "P"
         self.row = row
         self.column = column
 
@@ -205,18 +207,18 @@ class Pawn(Piece):
         move two rows from their starting square and their need to move diagonally
         to capture a piece. Does not currently handle en passant or promotion."""
         # collision code
-        if self.double_row_move and self.path_is_clear:
+        if self.double_row_move() and self.path_is_clear():
             return True
         # collision code
-        elif self.single_row_move and self.path_is_clear:
+        elif self.single_row_move() and self.path_is_clear():
             return True
-        elif self.diagonal_move and self.capturing_piece:
+        elif self.diagonal_move() and self.capturing_piece():
             return True
         else:
             return False
 
     def double_row_move(self):
-        if self.row == self.starting_row and self.proposed_row == self.starting_row() + (2 * self.move_direction()) and self.column == self.proposed_column:
+        if self.row == self.starting_row() and self.proposed_row == self.starting_row() + (2 * self.move_direction()) and self.column == self.proposed_column:
             return True
         else:
             return False
@@ -243,7 +245,7 @@ class Pawn(Piece):
         return True
 
     def capturing_piece(self):
-        if not square_is_empty(self.proposed_row, self.proposed_column) and self.proposed_square_is_empty_or_capturable:
+        if not square_is_empty(self.proposed_row, self.proposed_column) and self.proposed_square_is_empty_or_capturable():
             return True
         else:
             return False
@@ -269,10 +271,7 @@ class Rook(Piece):
             return "♖"
 
     def move_is_legal(self):
-        return self.straight_move_legal and self.path_is_clear and self.proposed_square_is_empty_or_capturable
-
-    def path_is_clear(self):
-        return self.straight_path_is_clear
+        return self.straight_move_legal() and self.straight_path_is_clear() and self.proposed_square_is_empty_or_capturable()
 
 
 class Knight(Piece):
@@ -295,14 +294,16 @@ class Knight(Piece):
             return "♘"
 
     def move_is_legal(self):
-        if self.move_is_L_shape and self.proposed_square_is_empty_or_capturable():
+        if self.move_is_L_shape() and self.proposed_square_is_empty_or_capturable():
             return True
         else:
             return False
 
     def move_is_L_shape(self):
         """Determines knight move legality"""
-        if (abs(self.row - self.proposed_row) == 2 and abs(self.column - self.proposed_column) == 1) or (abs(self.row - self.proposed_row) == 1 and abs(self.column - self.proposed_column) == 2):
+        if abs(self.row - self.proposed_row) == 2 and abs(self.column - self.proposed_column) == 1:
+            return True
+        elif abs(self.row - self.proposed_row) == 1 and abs(self.column - self.proposed_column) == 2:
             return True
         else:
             return False
@@ -328,10 +329,7 @@ class Bishop(Piece):
             return "♗"
 
     def move_is_legal(self):
-        return self.diagonal_move_legal and self.path_is_clear and self.proposed_square_is_empty_or_capturable
-
-    def path_is_clear(self):
-        return self.diagonal_path_is_clear
+        return self.diagonal_move_legal() and self.diagonal_path_is_clear() and self.proposed_square_is_empty_or_capturable()
 
 
 class Queen(Piece):
@@ -354,8 +352,8 @@ class Queen(Piece):
             return "♕"
 
     def move_is_legal(self):
-        if (self.diagonal_move_legal and self.diagonal_path_is_clear) or (self.straight_move_legal and self.straight_path_is_clear):
-            if self.proposed_square_is_empty_or_capturable:
+        if (self.diagonal_move_legal() and self.diagonal_path_is_clear) or (self.straight_move_legal() and self.straight_path_is_clear()):
+            if self.proposed_square_is_empty_or_capturable():
                 return True
         else:
             return False
@@ -381,7 +379,7 @@ class King(Piece):
             return "♔"
 
     def move_is_legal(self):
-        return self.move_is_only_one_square and self.proposed_square_is_empty_or_capturable
+        return self.move_is_only_one_square() and self.proposed_square_is_empty_or_capturable()
 
     def move_is_only_one_square(self):
         """Determines king move legality. The check status of the king is not
@@ -447,7 +445,7 @@ def move_piece():
     piece.proposed_row = move_piece_to[0]
     piece.proposed_column = move_piece_to[1]
 
-    if piece.move_is_legal:
+    if piece.move_is_legal():
         board[piece.row][piece.column] = empty_square
 
         if piece_on_square(piece.proposed_row, piece.proposed_column):
