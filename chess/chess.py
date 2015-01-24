@@ -13,12 +13,9 @@
 #         bugs: currently valid to select a square of the board with no pieces on it
 
 import sys
-import math
 
 board_size = 8
 empty_square = "-"
-move_piece_located_at = [0, 0]
-move_piece_to = [0, 0]
 pieces_in_play = []
 captured_pieces = []
 board = [[empty_square for j in range(board_size)] for i in range(board_size)]
@@ -36,7 +33,7 @@ white_move_direction = -1
 
 
 def update_board():
-    """Check if there is a piece located at each square on the board. If there is, add the piece's icon there"""
+    """For each piece in play, add the piece's icon to the piece's coordinates on the board"""
     for piece in pieces_in_play:
         board[piece.row][piece.column] = piece.icon
 
@@ -65,26 +62,24 @@ def piece_on_square(row, column):
 
 def get_piece_on_square(row, column):
     """Returns piece on a particular square """
-    # need to reuse this more often
     for piece in pieces_in_play:
         if piece.row == row and piece.column == column:
             return piece
 
 
-def capture_piece(row, column):
-    """Finds the piece to be captured, removes it from play, and places it in another list for easy printing later on"""
+def capture_piece(piece):
+    """Removes piece from play, and places it in a list of captured pieces for easy printing later on"""
     # needs checks for colours!!
     # needs exception for kings!!
-    piece = get_piece_on_square(row, column)
     captured_pieces.append(piece)
     pieces_in_play.remove(piece)
     print("Captured %s" % captured_pieces[-1].icon)
 
 
 class Piece:
-    """Pieces are initialised with a name, colour and icon.
-    Additionally they have attributes row and column that correspond to their
-    current location, and the attributes proposed_row and proposed_column which
+    """Most pieces are initialised with only a colour and a column.
+    The attributes row and column that correspond to their
+    current location, and the attributes proposed_row and proposed_column
     correspond to coordinates of their proposed move (and are initialised at 0,0)
     """
     proposed_row = 0
@@ -110,12 +105,12 @@ class Piece:
             return False
 
     def diagonal_move_legal(self):
-        """A bishop has to move along diagonals, so the abs deltaX and the abs deltaY should be equal """
+        """A bishop has to move along diagonals, so the abs deltaX and the abs deltaY should be equal."""
         if abs(self.row - self.proposed_row) == abs(self.column - self.proposed_column):
             return True
 
     def straight_move_legal(self):
-        """A rook moves either along a row or a column, but not both """
+        """A rook moves either along a row or a column, but not both."""
         if (self.row - self.proposed_row == 0) and (abs(self.column - self.proposed_column) > 0):
             return True
         elif (abs(self.row - self.proposed_row) > 0) and (self.column - self.proposed_column == 0):
@@ -126,12 +121,12 @@ class Piece:
     def diagonal_path_is_clear(self):
         """Checks for bishop collision, taking into account that they can move in
         one of four directions"""
-        signed_step_column = signed_step(self.proposed_column, self.column)
-        signed_step_row = signed_step(self.proposed_row, self.row)
+        move_direction_column = get_move_direction(self.proposed_column, self.column)
+        move_direction_row = get_move_direction(self.proposed_row, self.row)
 
         # TODO: search the path more efficiently / make more readable
-        for row in range(self.row + signed_step_row, self.proposed_row, signed_step_row):
-            for column in range(self.column + signed_step_column, self.proposed_column, signed_step_column):
+        for row in range(self.row + move_direction_row, self.proposed_row, move_direction_row):
+            for column in range(self.column + move_direction_column, self.proposed_column, move_direction_column):
                 if abs(self.row - row) == abs(self.column - column):
                     if piece_on_square(row, column):
                         return False
@@ -141,10 +136,9 @@ class Piece:
     def straight_path_is_clear(self):
         """Checks for rook collisions, taking into account that they can move in
         one of four directions"""
-        # check all the squares between start and destination (exclusive). Return False if any piece is on these squares
 
         if self.row == self.proposed_row:
-            move_direction = signed_step(self.proposed_column, self.column)
+            move_direction = get_move_direction(self.proposed_column, self.column)
             start_of_path = self.column + move_direction
 
             for column in range(start_of_path, self.proposed_column, move_direction):
@@ -152,7 +146,7 @@ class Piece:
                     return False
 
         elif self.column == self.proposed_column:
-            move_direction = signed_step(self.proposed_row, self.row)
+            move_direction = get_move_direction(self.proposed_row, self.row)
             start_of_path = self.row + move_direction
 
             for row in range(start_of_path, self.proposed_row, move_direction):
@@ -379,10 +373,17 @@ class King(Piece):
             return False
 
 
-def signed_step(int1, int2):
-    # might be able to use max() and min() here rather than .copysign().
-    # not sure if that would come in handy for bishop collision detection
-    return int(math.copysign(1, int1 - int2))
+def get_move_direction(proposed, current):
+    """Gets the direction that the piece is moving in across the board: 1 if it is going from low to high, or -1 if
+    going from high to low
+    """
+    if proposed > current:
+        return 1
+    elif proposed < current:
+        return -1
+    else:
+        # This should never happen
+        return 0
 
 
 def create_pawns():
@@ -405,7 +406,7 @@ def create_other_pieces():
 
 
 def create_royalty():
-    """Places kings and queens in specified squares"""
+    """Places kings and queens in pre-determined squares"""
     pieces_in_play.append(King("white"))
     pieces_in_play.append(King("black"))
     pieces_in_play.append(Queen("white"))
@@ -419,9 +420,18 @@ def create_pieces():
     create_royalty()
 
 
+def set_new_piece_position(piece):
+    piece.row = piece.proposed_row
+    piece.column = piece.proposed_column
+
+
+def clear_old_board_position(piece):
+    board[piece.row][piece.column] = empty_square
+
+
 def move_piece():
     """Decides whether or not to move the piece, based on the coordinates
-    inputted by the user and move_legal and collision_detected. In the future,
+    inputted by the user and the .move_is_legal() method of the piece. In the future,
     this will also depend on a check_for_check function.
     If a move is made then the old square is made empty"""
     user_input = get_user_input()
@@ -431,13 +441,13 @@ def move_piece():
     piece.proposed_column = user_input[1][1]
 
     if piece.move_is_legal():
-        board[piece.row][piece.column] = empty_square
-
         if piece_on_square(piece.proposed_row, piece.proposed_column):
-            capture_piece(piece.proposed_row, piece.proposed_column)
+            captured_piece = get_piece_on_square(piece.proposed_row, piece.proposed_column)
+            capture_piece(captured_piece)
 
-        piece.row = piece.proposed_row
-        piece.column = piece.proposed_column
+        clear_old_board_position(piece)
+        set_new_piece_position(piece)
+
     else:
         print("Sorry, that move is invalid")
         move_piece()
